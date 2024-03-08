@@ -4,6 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import Home from "./pages/Home";
 import Entrylist from "./pages/Entrylist";
+import EntryPage from "./pages/EntryPage";
 
 function App() {
 
@@ -12,9 +13,10 @@ function App() {
     {/* <div className="App"> */}
       <BrowserRouter>
         <Routes>
-          <Route exact={true} path="/" element={<Home />} />
+          {/* <Route exact={true} path="/" element={<Home />} /> */}
           {/* <Route exact={true} path="/login" element={<Login />} /> */}
-          <Route exact={true} path="/entrylist" element={<Entrylist />} />
+          <Route exact={true} path="/" element={<Entrylist />} />
+          <Route exact={true} path="/entry/:id" element={<EntryPage />} />
         </Routes>
       </BrowserRouter>
     {/* </div> */}

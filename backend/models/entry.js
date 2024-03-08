@@ -7,6 +7,7 @@ const EntrySchema = new mongoose.Schema({
   generalPermission: { type: String, required: true },
   dateGenerated: { type: Date, required: true },
   qrCode: { type: String, required: true },
+  subEntriesCount: { type: Number, required: true },
 });
 
 mongoose.model("Entry", EntrySchema);

@@ -1,64 +1,88 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button, Container, NavDropdown, Nav, Navbar, Row, Col, Card } from 'react-bootstrap/'
-import { GoogleLogin } from '@react-oauth/google';
+// import { GoogleLogin } from '@react-oauth/google';
 import sampleQR from '../assets/sampleqr.png';
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
+
+import NavigationBar from "./components/NavigationBar";
+
+import { baseURL } from "../utils/constants";
+import { postFetch } from "../utils/requests";
+import { isNull } from "lodash";
+
 
 const Entrylist = () => {
 
-        const x = [1,2,3,4,5,6,7,8,9,10,11,12]
-        const [isLoggedIn, setIsLoggedIn] = useState(false);
-        const [user, setUser] = useState();
+    const navigate = useNavigate();
 
-        return(
-            <div style={{ backgroundColor: "#f3f4f6" }}>
-                <Navbar style={{ backgroundColor: "white"}} >
-                <Container fluid>
-                    <Navbar.Brand ><h4 style={{marginLeft: "10px"}}>SIG-ONE</h4></Navbar.Brand>
-                    <Navbar.Toggle />
-                    <Navbar.Collapse className="justify-content-end">
-                    <Nav>
-                        {/* <Nav.Link><div classNaime="g-sgnin2" data-onsuccess="onSignIn"></div></Nav.Link> */}
-                        <Nav.Link>
-                            {
-                                isLoggedIn ? 
-                                    <h4>{user}</h4>
-                                    :
-                                    <GoogleLogin
-                                        onSuccess={credentialResponse => {
-                                            console.log(credentialResponse);
-                                            console.log(
-                                                jwtDecode(credentialResponse.credential)
-                                            )
-                                            setUser(jwtDecode(credentialResponse.credential).name);
-                                            setIsLoggedIn(true);
-                                        }}
-                                        onError={() => {
-                                            console.log('Login Failed');
-                                        }}
-                                    />
-                            }
-                        </Nav.Link>
-                    </Nav>
-                    </Navbar.Collapse>
-                </Container>
-                </Navbar>
-                <Container>
-                    <Row>
+    const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("user") ? true : null);
+    const [entries, setEntries] = useState(null);
+
+    const fetchAllEntries = async () => {
+        await postFetch(`${baseURL}/get-personal-entries`, {
+            email: JSON.parse(localStorage.getItem("user")).email
+        }).then((res)=>{
+            setEntries(res.results);
+        });
+    };
+    
+    useEffect(()=>{
+        let userString = localStorage.getItem("user");
+
+        if (userString) {
+            setIsLoggedIn(true);
+        }
+
+    }, []);
+
+    useEffect(()=>{
+        if (isLoggedIn) {
+            fetchAllEntries();
+        }
+    }, [isLoggedIn]);
+
+    //style={{ backgroundColor: "#f3f4f6" }}
+    return(
+        <div style={{overflow: "hidden"}}>
+            <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+            <Container style={{paddingTop: "20px"}}>
+                {   
+                    isNull(isLoggedIn) ?
+                    null :
+                    isLoggedIn ?
+                    isNull(entries) ?
+                    null :
+                    entries.length == 0 ?
+                    <Row style={{marginTop: "30px"}}>
+                        <Col  className="my-1 mx-auto" key="00" >
+                        <Card >
+                            <Card.Img variant="top" />
+                            <Card.Body>
+                                <h4 style={{textAlign: "center"}}>No QR Code Entries added yet.</h4>
+                            </Card.Body>
+                        </Card>
+                        </Col>
+                    </Row> :
+                    <Row style={{backgroundColor: "#204183", paddingBottom: "10vh"}} >
                     {
-                        x.map((entry) => {
+                        entries.map((entry) => {
                             return(
-                                // <Row className="mt-3">
-                                <Col xs={11} md={4} lg={3} xl={2} className="my-1 mx-auto" key={entry} >
+                                // <Row className="mt-3">  mx-auto
+                                <Col xs={11} md={4} lg={3} xl={2} className="list-col my-1" key={entry._id} >
                                 <Card >
                                     <Card.Img variant="top" src={sampleQR} />
                                     <Card.Body>
-                                        <Card.Title>Entry {entry}</Card.Title>
-                                        <Card.Text>
-                                        Generated at 1970/01/01
-                                        </Card.Text>
-                                        <Button variant="primary">View details</Button>
+                                        <Card.Title>{entry.entryTitle}</Card.Title>
+                                        <p>Generated at {new Date(entry.dateGenerated).toLocaleString()}</p>
+                                        <p>{entry.subEntriesCount} SubEntries</p> 
+                                        <Button 
+                                            variant="primary" 
+                                            onClick={()=>{
+                                                navigate(`/entry/${entry._id}`);
+                                            }}
+                                            disabled={entry.subEntriesCount == 0}
+                                        >View details</Button>
                                     </Card.Body>
                                 </Card>
                                 </Col>
@@ -66,10 +90,21 @@ const Entrylist = () => {
                             )
                         })
                     }
+                    </Row> :
+                    <Row style={{marginTop: "30px"}}>
+                        <Col  className="my-1 mx-auto" key="00" >
+                        <Card >
+                            <Card.Img variant="top" />
+                            <Card.Body>
+                                <h4 style={{textAlign: "center"}}>Login through your Google Account to create your own QR Code Entries.</h4>
+                            </Card.Body>
+                        </Card>
+                        </Col>
                     </Row>
-                </Container>
-            </div>
-        )
+                }
+            </Container>
+        </div>
+    )
 }
 
 export default Entrylist;

@@ -7,7 +7,31 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body, html {
+  height: 100%;
+  width: 100%;
+}
+
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+#root {
+  background-color: #204183;
+  height: 100%;
+  width: 100%;
+  padding-top: 8vh;
+}
+
+#navbarBrand:hover {
+  cursor: pointer;
+}
+
+
+@media only screen and (max-width: 576px) {
+  .list-col {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
