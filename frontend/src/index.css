@@ -21,17 +21,46 @@ code {
   background-color: #204183;
   height: 100%;
   width: 100%;
-  padding-top: 8vh;
+  padding-top: 11vh;
 }
 
-#navbarBrand:hover {
+#navbarBrand:hover, .links:hover, .links-nav-item:hover {
   cursor: pointer;
+  /* background-color: #16326b;
+  color: white; */
+}
+
+.links {
+  color: black;
+  text-decoration: none;
 }
 
 
-@media only screen and (max-width: 576px) {
-  .list-col {
+@media only screen and (max-width: 768px) {
+  .list-col-entries {
     margin-left: auto;
     margin-right: auto;
   }
 }
+
+@media only screen and (min-width: 576px) {
+  .list-left-col-subentries {
+    border-right: 8px solid #204183
+  }
+}
+
+@media only screen and (max-width: 576px) {
+  .list-left-col-subentries {
+    border-bottom: 1px solid #204183
+  }
+}
+
+/* 
+Breakpoints Guide:
+X-Small	None	<576px
+Small	sm	≥576px
+Medium	md	≥768px
+Large	lg	≥992px
+Extra large	xl	≥1200px
+Extra extra large	xxl	≥1400px 
+*/

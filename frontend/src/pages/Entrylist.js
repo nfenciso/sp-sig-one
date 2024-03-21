@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, Container, NavDropdown, Nav, Navbar, Row, Col, Card } from 'react-bootstrap/'
+import { Button, Container, NavDropdown, Nav, Navbar, Row, Col, Card, Spinner } from 'react-bootstrap/'
 // import { GoogleLogin } from '@react-oauth/google';
 import sampleQR from '../assets/sampleqr.png';
 // import { jwtDecode } from "jwt-decode";
@@ -32,6 +32,8 @@ const Entrylist = () => {
 
         if (userString) {
             setIsLoggedIn(true);
+        } else {
+            setIsLoggedIn(false);
         }
 
     }, []);
@@ -46,7 +48,7 @@ const Entrylist = () => {
     return(
         <div style={{overflow: "hidden"}}>
             <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <Container style={{paddingTop: "20px"}}>
+            <Container fluid>
                 {   
                     isNull(isLoggedIn) ?
                     null :
@@ -64,22 +66,32 @@ const Entrylist = () => {
                         </Card>
                         </Col>
                     </Row> :
-                    <Row style={{backgroundColor: "#204183", paddingBottom: "10vh"}} >
+                    <Row 
+                        style={{
+                            backgroundColor: "#204183", 
+                            //paddingBottom: "100px",
+                            paddingLeft: "2vw",
+                            paddingRight: "2vw", 
+                            width: "100vw",
+                        }} >
                     {
                         entries.map((entry) => {
                             return(
-                                // <Row className="mt-3">  mx-auto
-                                <Col xs={11} md={4} lg={3} xl={2} className="list-col my-1" key={entry._id} >
+                                <Col 
+                                    xs={11} sm={5} md={4} lg={3} xl={2} 
+                                    className="list-col-entries mb-4" 
+                                    key={entry._id}
+                                    >
                                 <Card >
-                                    <Card.Img variant="top" src={sampleQR} />
+                                    {/* <Card.Img variant="top" src={sampleQR} /> */}
                                     <Card.Body>
                                         <Card.Title>{entry.entryTitle}</Card.Title>
-                                        <p>Generated at {new Date(entry.dateGenerated).toLocaleString()}</p>
-                                        <p>{entry.subEntriesCount} SubEntries</p> 
+                                        <p>Created at {new Date(entry.dateGenerated).toLocaleString()}</p>
+                                        <p>{entry.subEntriesCount} Subentries</p> 
                                         <Button 
                                             variant="primary" 
                                             onClick={()=>{
-                                                navigate(`/entry/${entry._id}`);
+                                                navigate(`/personal-entry/${entry._id}`);
                                             }}
                                             disabled={entry.subEntriesCount == 0}
                                         >View details</Button>
@@ -91,8 +103,8 @@ const Entrylist = () => {
                         })
                     }
                     </Row> :
-                    <Row style={{marginTop: "30px"}}>
-                        <Col  className="my-1 mx-auto" key="00" >
+                    <Row>
+                        <Col className="my-1 mx-auto px-5 mt-3" key="00" >
                         <Card >
                             <Card.Img variant="top" />
                             <Card.Body>
