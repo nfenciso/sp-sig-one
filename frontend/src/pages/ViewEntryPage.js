@@ -18,6 +18,7 @@ const ViewEntryPage = () => {
     const [subentries, setSubentries] = useState([]);
     const [entryDetails, setEntryDetails] = useState(null);
     const email = useRef(null);
+    const [isOwner, setIsOwner] = useState(null);
 
     const fetchAppropriateSubentries = async () => {
         await postFetch(`${baseURL}/get-appropriate-subentries`, {
@@ -34,6 +35,8 @@ const ViewEntryPage = () => {
             email: email.current
         }).then((res)=>{
             if (res.access) {
+                console.log(res);
+                setIsOwner(res.isOwner);
                 setEntryDetails(res.results);
                 fetchAppropriateSubentries();
             } else {
@@ -67,6 +70,20 @@ const ViewEntryPage = () => {
                 <Row className="mb-3 bg-white mx-auto p-3 pb-1" >
                 <h3>{entryDetails.entryTitle}</h3>
                 <p>This entry was created by {entryDetails.userEmail} at {new Date(entryDetails.dateGenerated).toLocaleString()}.</p>
+                {
+                    isOwner ? 
+                    <div className="pb-3">
+                        General Permissions:
+                        {entryDetails.generalPermission.map((perm)=>{
+                            return(
+                                <div key={entryDetails.index+perm.value}>
+                                
+                                <span>- {perm.value}{['public','private'].includes(perm.value) ? "" : ":"} {perm.details}</span>
+                                </div>
+                            );
+                        })}
+                    </div> : null
+                }
                 </Row>
                 {
                 subentries?.map((subentry)=>{
@@ -74,7 +91,31 @@ const ViewEntryPage = () => {
                         <Row className="mb-3 bg-white mx-auto" key={subentry.index}>
                             <Col lg={3} className="list-left-col-subentries p-3"
                             >
-                            <div>{subentry.subentryTitle}</div>
+                            <div>{
+                                isOwner ?
+                                <>{subentry.index}: </>
+                                :
+                                null    
+                            }{subentry.subentryTitle}</div>
+                            {
+                                isOwner ? 
+                                <>
+                                <hr />
+                                <div>
+                                    Specific Permissions:
+                                    {subentry.specificPermission.map((perm)=>{
+                                        return(
+                                            <div key={subentry.index+perm.value}>
+                                            
+                                            <span>- {perm.value}{['public','private'].includes(perm.value) ? "" : ":"} {perm.details}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                </>
+                                :
+                                null
+                            }
                             </Col>
                             <Col className="list-right-col-subentries p-3">
                             {subentry.content}

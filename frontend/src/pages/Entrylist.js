@@ -11,6 +11,7 @@ import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
 import { isNull } from "lodash";
 
+import QRCode from "qrcode";
 
 const Entrylist = () => {
 
@@ -18,12 +19,24 @@ const Entrylist = () => {
 
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("user") ? true : null);
     const [entries, setEntries] = useState(null);
+    const [qrCodes, setQrCodes] = useState(null);
 
     const fetchAllEntries = async () => {
         await postFetch(`${baseURL}/get-personal-entries`, {
             email: JSON.parse(localStorage.getItem("user")).email
         }).then((res)=>{
             setEntries(res.results);
+            console.log(res.results);
+
+            let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
+
+            res.results.map((entry, index)=>{
+                QRCode.toDataURL(entry._id, { errorCorrectionLevel: 'H' }, function (err, url) {
+                    qrList[index] = url;
+                });
+            });
+
+            setQrCodes(qrList);
         });
     };
     
@@ -53,9 +66,9 @@ const Entrylist = () => {
                     isNull(isLoggedIn) ?
                     null :
                     isLoggedIn ?
-                    isNull(entries) ?
+                    isNull(qrCodes) ?
                     null :
-                    entries.length == 0 ?
+                    qrCodes.length == 0 ?
                     <Row style={{marginTop: "30px"}}>
                         <Col  className="my-1 mx-auto" key="00" >
                         <Card >
@@ -75,7 +88,7 @@ const Entrylist = () => {
                             width: "100vw",
                         }} >
                     {
-                        entries.map((entry) => {
+                        entries.map((entry, index) => {
                             return(
                                 <Col 
                                     xs={11} sm={5} md={4} lg={3} xl={2} 
@@ -84,6 +97,7 @@ const Entrylist = () => {
                                     >
                                 <Card >
                                     {/* <Card.Img variant="top" src={sampleQR} /> */}
+                                    <Card.Img variant="top" src={qrCodes[index]} />
                                     <Card.Body>
                                         <Card.Title>{entry.entryTitle}</Card.Title>
                                         <p>Created at {new Date(entry.dateGenerated).toLocaleString()}</p>
@@ -91,9 +105,9 @@ const Entrylist = () => {
                                         <Button 
                                             variant="primary" 
                                             onClick={()=>{
-                                                navigate(`/personal-entry/${entry._id}`);
+                                                navigate(`/view-entry/${entry._id}`);
                                             }}
-                                            disabled={entry.subEntriesCount == 0}
+                                            // disabled={entry.subEntriesCount == 0}
                                         >View details</Button>
                                     </Card.Body>
                                 </Card>

@@ -65,10 +65,15 @@ const NavigationBar = ({
                 {
                     isLoggedIn ?
                     <Navbar.Collapse className="justify-content-between">
-                        <Nav.Item>
+                        <Nav.Item
+                            style={{display: "flex", gap: "12px"}}
+                        >
                             <a className="links" onClick={()=>{
                                 navigate("/create-entry/");
                             }} >Create New Entry</a>
+                            <a className="links" onClick={()=>{
+                                navigate("/scan");
+                            }} >Scan</a>
                         </Nav.Item>
                         {
                             windowWidth >= 768 ?

@@ -67,6 +67,7 @@ const createEntry = async (req, res) => {
     
             const newSubentry = new Subentry({
                 entryId: entry._id,
+                userEmail,
                 index,
                 subentryTitle,
                 specificPermission: specificPerm,
@@ -170,7 +171,12 @@ const getAppropriateEntryDetails = async (req, res) => {
     }
 
     let hasAccess = false;
-    if (results.generalPermission[0].value != "private") {
+    let isOwner = false;
+    if (results.userEmail == email) {
+        hasAccess = true;
+        isOwner = true;
+    }
+    if (!hasAccess && results.generalPermission[0].value != "private") {
         if (results.generalPermission[0].value == "public") {
             hasAccess = true;
         } else {
@@ -194,13 +200,15 @@ const getAppropriateEntryDetails = async (req, res) => {
         return res.send({
             success: true,
             access: true,
-            results
+            results,
+            isOwner
         });
     } else {
         return res.send({
             success: true,
             access: false,
-            results
+            results,
+            isOwner
         });
     }
 }
@@ -221,11 +229,17 @@ const getAppropriateSubentries = async (req, res) => {
     }
 
     let results = [];
+    let isOwner = false;
 
     subentries?.map((subentry)=>{
         let hasAccess = false;
         console.log(subentry);
-        if (subentry.specificPermission[0].value != "private") {
+
+        if (subentry.userEmail == email) {
+            hasAccess = true;
+            isOwner = true;
+        }
+        if (!hasAccess && subentry.specificPermission[0].value != "private") {
             if (subentry.specificPermission[0].value == "public") {
                 hasAccess = true;
             } else {
@@ -258,7 +272,8 @@ const getAppropriateSubentries = async (req, res) => {
 
     return res.send({
         success: true,
-        results
+        results,
+        isOwner
     });
 } 
 
