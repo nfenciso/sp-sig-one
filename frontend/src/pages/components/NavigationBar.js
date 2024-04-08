@@ -74,6 +74,9 @@ const NavigationBar = ({
                             <a className="links" onClick={()=>{
                                 navigate("/scan");
                             }} >Scan</a>
+                            <a className="links" onClick={()=>{
+                                navigate("/pdf");
+                            }} >Insert to PDF</a>
                         </Nav.Item>
                         {
                             windowWidth >= 768 ?

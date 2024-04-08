@@ -16,16 +16,16 @@ const PRIVATE_OPTION = "private";
 const SAME_AS_GENERAL_OPTION = "99";
 const OPTIONS_ARRAY = [PUBLIC_OPTION, ORG_OPTION, PERSONS_OPTION, PRIVATE_OPTION];
 const DEFAULT_SUB = [
-    {
-        index: 0,
-        subtitle: "",
-        type: "text",
-        content: "",
-        specificPermissions: [{
-            index: 0,
-            value: PUBLIC_OPTION
-        }] 
-    }
+    // {
+    //     index: 0,
+    //     subtitle: "",
+    //     type: "text",
+    //     content: "",
+    //     specificPermissions: [{
+    //         index: 0,
+    //         value: PUBLIC_OPTION
+    //     }] 
+    // }
 ];
 const DEFAULT_GEN = [
     {
