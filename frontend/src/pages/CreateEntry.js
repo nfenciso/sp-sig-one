@@ -236,7 +236,7 @@ const CreateEntry = () => {
                     }
                 }>{
                     genPermissions.length >= 2 ? "Delete" : "Add"
-                } 2nd Option</Button>
+                } 2nd Option [1st Option OR 2nd Option]</Button>
                 {/* <Button className="mb-1" variant="danger"
                     disabled={genPermissions.length <= 1}
                     onClick={()=>{
@@ -503,7 +503,9 @@ const CreateEntry = () => {
                 }}>Add Subentry</Button>
                 <span>  </span>
                 <Button className="mb-3" variant="light" onClick={()=>{
-                    postCreateEntry();
+                    if (window.confirm("Confirm create entry?") == true) {
+                        postCreateEntry();
+                    }
                 }}>Create and Publish</Button>
                 </Col>
             </Row>

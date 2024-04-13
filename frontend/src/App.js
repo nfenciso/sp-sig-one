@@ -9,12 +9,13 @@ import CreateEntry from "./pages/CreateEntry";
 import ViewEntryPage from "./pages/ViewEntryPage";
 import ScannerPage from "./pages/ScannerPage";
 import PDFPage from "./pages/PDFPage";
+import ScannerPDFPage from "./pages/ScannerPDFPage";
 
 function App() {
 
   return (
     <>
-    <div className="App pb-3" style={{backgroundColor: "#204183"}}  >
+    <div className="App" style={{backgroundColor: "#204183", paddingBottom: "40px"}}  >
       <BrowserRouter>
         <Routes>
           {/* <Route exact={true} path="/" element={<Home />} /> */}
@@ -24,7 +25,8 @@ function App() {
           <Route exact={true} path="/create-entry/" element={<CreateEntry />} />
           <Route exact={true} path="/view-entry/:id" element={<ViewEntryPage />} />
           <Route exact={true} path="/pdf" element={<PDFPage />} />
-          <Route exact={true} path="/scan" element={<ScannerPage />} />
+          <Route exact={true} path="/scan-camera" element={<ScannerPage />} />
+          <Route exact={true} path="/scan-pdf" element={<ScannerPDFPage />} />
         </Routes>
       </BrowserRouter>
     </div>

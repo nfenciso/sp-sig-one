@@ -17,10 +17,10 @@ const ImageSlider = ({
     hasPicked,
     setHasPicked,
     setImgDim,
-    imgDimRef
+    imgDimRef,
+    displayButtons,
+    setDisplayButtons
 }) => {
-
-    const [currCanv, setCurrCanv] = useState(null);
     
     useEffect(()=>{
         //console.log(canvasList);
@@ -121,6 +121,15 @@ const ImageSlider = ({
                     document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
 
                 }}>++</button>
+                </div>
+                <div>
+                    <button
+                        onClick={()=>{
+                            setDisplayButtons((curr)=>{
+                                return !curr;
+                            });
+                        }}
+                    >{displayButtons? "Hide" : "Show"} buttons in the lower right screen</button>
                 </div>
             </div>
             {/* <img 

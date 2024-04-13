@@ -95,6 +95,21 @@ const createEntry = async (req, res) => {
     });
 };
 
+const deleteEntry = async (req, res) => {
+    const id = req.body.id;
+
+    try {
+        await Entry.findByIdAndDelete(id);
+        await Subentry.deleteMany({ entryId: id });
+    } catch (error) {
+        console.log(error);    
+    }
+
+    return res.send({
+        success: true
+    });
+}
+
 const getPersonalEntries = async (req, res) => {
     const email = req.body.email;
 
@@ -278,4 +293,4 @@ const getAppropriateSubentries = async (req, res) => {
 } 
 
 export { createEntry, getPersonalEntries, getPersonalSubEntries, getPersonalOneEntry, getAppropriateEntryDetails,
-    getAppropriateSubentries };
+    getAppropriateSubentries, deleteEntry };

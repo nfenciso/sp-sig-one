@@ -1,5 +1,5 @@
 import React, { useEffect, useReducer, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import * as PDFJS from 'pdfjs-dist';
 
@@ -19,8 +19,11 @@ const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
 const PDFPage = () => {
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("user") ? true : null);
+	const [filename, setFilename] = useState(null);
+    const [displayButtons, setDisplayButtons] = useState(false);
     const [imgIdx, setImgIdx] = useState(0);
     const imgIdxRef = useRef(0);
     const [qrImage, setQrImage] = useState(null);
@@ -50,6 +53,14 @@ const PDFPage = () => {
 
         if (userString) {
             setIsLoggedIn(true);
+
+            if (location.state?.id) {
+                QRCode.toDataURL(location.state.id, { errorCorrectionLevel: 'H' }, function (err, url) {
+                    setQrImage(url);
+                });
+            }
+        } else {
+            setIsLoggedIn(false);
         }
     }, []);
 
@@ -103,10 +114,12 @@ const PDFPage = () => {
 		window.URL.revokeObjectURL(elem.href);
 	};
 
-    const loadPdfToImage = async (url) => {
+    const loadPdfToImage = async (file) => {
     
-        const selectedFile = url;
+        const selectedFile = file;
         var existingPdfBytes;
+
+        setFilename(file.name);
 		
 		const reader = new FileReader();
 		reader.onload = async function() {
@@ -208,7 +221,7 @@ const PDFPage = () => {
         const pdfBytes = await pdfDoc.save()
 
         // Trigger the browser to download the PDF document
-        downloadFile( "pdf-lib_modification_example.pdf", pdfBytes);
+        downloadFile( filename.slice(0,-4) +"_marked.pdf", pdfBytes);
 
         // const c = document.getElementById("canvas").children[0];
         // const ctx = c.getContext("2d");
@@ -253,7 +266,7 @@ const PDFPage = () => {
         // console.log("===");
 
         //console.log(prevPos.current);
-        if (posX < 0) {
+        if (posX < 0 || posY < 0) {
             posX = prevPos.current.posX;
             posY = prevPos.current.posY;
         } else {
@@ -314,7 +327,7 @@ const PDFPage = () => {
                                 setQrImage(url);
                             });
                         }}
-                        defaultValue="0"
+                        defaultValue={location.state?.id? location.state?.id : "0"}
                     >
                         <option disabled value="0" style={{display:"none"}}> -- select an option -- </option>
                         {
@@ -354,12 +367,92 @@ const PDFPage = () => {
                         setImgDim={setImgDim}
                         imgDimRef={imgDimRef}
                         drawImgConfig={drawImgConfig}
+                        displayButtons={displayButtons}
+                        setDisplayButtons={setDisplayButtons}
                     />
                     </Row>
                     :
                     null
                 }
                 </>
+            }
+            
+            {
+                displayButtons?
+                <div style={{position: "fixed", bottom: "20px", right: "20px", display: "flex", gap: "12px"}}>
+                    <div>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
+                        disabled={imgIdx == 0} 
+                            onClick={()=>{
+                            setImgIdx((prev)=>{
+                                if (prev > 0) {
+                                    imgIdxRef.current = prev-1;
+                                    return prev-1;
+                                } else {
+                                    imgIdxRef.current = prev;
+                                    return prev;
+                                }
+                            })
+                            //setHasPicked(false);
+                        }}>{"<"}</button>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
+                            disabled={arrImg? imgIdx >= arrImg.length-1: true}
+                            onClick={()=>{
+                            setImgIdx((prev)=>{
+                                if (prev < arrImg.length-1) {
+                                    imgIdxRef.current = prev+1;
+                                    return prev+1;
+                                } else {
+                                    imgIdxRef.current = prev;
+                                    return prev;
+                                }
+                            })
+                            //setHasPicked(false);
+                        }}>{">"}</button>
+                    </div>
+                    <div>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
+                            disabled={!hasPicked}
+                            onClick={()=>{
+                            setImgDim((prev)=>{return prev-10});
+                            imgDimRef.current -= 10;
+
+                            var clickEvent = new MouseEvent("mousedown");
+                            document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
+                        }}>--</button>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
+                            disabled={!hasPicked}
+                            onClick={()=>{
+                            setImgDim((prev)=>{return prev-2});
+                            imgDimRef.current -= 2;
+
+                            var clickEvent = new MouseEvent("mousedown");
+                            document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
+                        }}>-</button>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
+                            disabled={!hasPicked}
+                            onClick={()=>{
+                            setImgDim((prev)=>{return prev+2});
+                            imgDimRef.current += 2;
+
+                            var clickEvent = new MouseEvent("mousedown");
+                            document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
+
+                        }}>+</button>
+                        <button style={{borderRadius: "40px", width: "40px", height: "40px", textAlign: "center"}}
+                            disabled={!hasPicked}
+                            onClick={()=>{
+                            setImgDim((prev)=>{return prev+10});
+                            imgDimRef.current += 10;
+
+                            var clickEvent = new MouseEvent("mousedown");
+                            document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
+
+                        }}>++</button>
+                    </div>
+                </div>
+                :
+                null
             }
             </Container>
         </>

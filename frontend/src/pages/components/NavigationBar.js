@@ -70,13 +70,16 @@ const NavigationBar = ({
                         >
                             <a className="links" onClick={()=>{
                                 navigate("/create-entry/");
-                            }} >Create New Entry</a>
+                            }} >[Create New Entry]</a>
                             <a className="links" onClick={()=>{
-                                navigate("/scan");
-                            }} >Scan</a>
+                                navigate("/scan-camera");
+                            }} >[Scan with Camera]</a>
+                            <a className="links" onClick={()=>{
+                                navigate("/scan-pdf");
+                            }} >[Scan from PDF]</a>
                             <a className="links" onClick={()=>{
                                 navigate("/pdf");
-                            }} >Insert to PDF</a>
+                            }} >[Insert to PDF]</a>
                         </Nav.Item>
                         {
                             windowWidth >= 768 ?

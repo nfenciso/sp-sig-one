@@ -47,7 +47,7 @@ const ViewEntryPage = () => {
     
     useEffect(()=>{
         let userString = localStorage.getItem("user");
-        email.current = JSON.parse(userString).email;
+        email.current = JSON.parse(userString)?.email;
 
         if (userString) {
             setIsLoggedIn(true);

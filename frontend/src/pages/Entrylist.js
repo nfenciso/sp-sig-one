@@ -4,6 +4,9 @@ import { Button, Container, NavDropdown, Nav, Navbar, Row, Col, Card, Spinner } 
 // import { GoogleLogin } from '@react-oauth/google';
 import sampleQR from '../assets/sampleqr.png';
 // import { jwtDecode } from "jwt-decode";
+import { IoMdDownload } from "react-icons/io";
+import { FaRegFilePdf } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 
 import NavigationBar from "./components/NavigationBar";
 
@@ -26,7 +29,7 @@ const Entrylist = () => {
             email: JSON.parse(localStorage.getItem("user")).email
         }).then((res)=>{
             setEntries(res.results);
-            console.log(res.results);
+            //console.log(res?.results);
 
             let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
 
@@ -56,6 +59,16 @@ const Entrylist = () => {
             fetchAllEntries();
         }
     }, [isLoggedIn]);
+
+    /**
+	 * Handles downloading of file.
+	 */
+	const downloadFileSimpler = (filename, data) => {
+		const link = document.createElement("a");
+        link.href = data;
+        link.download = filename;
+        link.click();
+	};
 
     //style={{ backgroundColor: "#f3f4f6" }}
     return(
@@ -97,8 +110,43 @@ const Entrylist = () => {
                                     >
                                 <Card >
                                     {/* <Card.Img variant="top" src={sampleQR} /> */}
+                                    <div 
+                                        style={{position: "relative"}}>
                                     <Card.Img variant="top" src={qrCodes[index]} />
-                                    <Card.Body>
+                                    <div 
+                                        style={{
+                                            position: "absolute", 
+                                            bottom: "0px", 
+                                            width: "100%",
+                                            display: "flex",
+                                            justifyContent: "flex-end",
+                                            padding: "4px",
+                                            gap: "4px"
+                                            }}>
+                                        <div className="entryCardButtons"
+                                            onClick={()=>{
+                                                downloadFileSimpler(entry.entryTitle+"_qr.png" , qrCodes[index])
+                                            }}
+                                        ><IoMdDownload /></div>
+                                        <div className="entryCardButtons"
+                                            onClick={()=>{
+                                                navigate("/pdf", {state: {id: entry._id}});
+                                            }}
+                                        ><FaRegFilePdf /></div>
+                                        <div className="entryCardButtons"
+                                            onClick={async ()=>{
+                                                if (window.confirm(("Confirm delete entry?")) == true) {
+                                                    await postFetch(`${baseURL}/delete-entry`, {
+                                                        id: entry._id
+                                                    }).then(()=>{
+                                                        fetchAllEntries();
+                                                    });
+                                                }
+                                            }}
+                                        ><MdDelete /></div>
+                                    </div>
+                                    </div>
+                                    <Card.Body className="pt-0">
                                         <Card.Title>{entry.entryTitle}</Card.Title>
                                         <p>Created at {new Date(entry.dateGenerated).toLocaleString()}</p>
                                         <p>{entry.subEntriesCount} Subentries</p> 
