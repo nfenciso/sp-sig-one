@@ -1,8 +1,15 @@
-import dotenv from "dotenv";
-dotenv.config();
 
-const separator1 = process.env.SEPARATOR_1;
-const separator2 = process.env.SEPARATOR_2;
+const PUBLIC_OPTION = "public";
+const ORG_OPTION = "org";
+const PERSONS_OPTION = "persons";
+const PRIVATE_OPTION = "private";
+
+const S_RETAIN_OPTION = "retain";
+const S_PRIVATIZE_OPTION = "privatize";
+const S_NEWTYPE_ORG_OPTION = "neworg";
+const S_NEWTYPE_PERSONS_OPTION = "newpersons";
+const S_MORE_SPECIFIC_ORG_OPTION = "morespecificorg";
+const S_MORE_SPECIFIC_PERSONS_OPTION = "morespecificpersons";
 
 import mongoose from 'mongoose';
 
@@ -14,12 +21,13 @@ const createEntry = async (req, res) => {
     const userEmail = req.body.userEmail;
     const entryTitle = req.body.entryTitle;
     const subEntriesCount = req.body.subentriesCount;
-    const genPerm = req.body.generalPermission;
+    const genPermission = req.body.genPermission;
+    const genPermissionDetails = req.body.genPermissionDetails;
 
     const newEntry = new Entry({
         userEmail,
         entryTitle,
-        generalPermission: genPerm,
+        generalPermission: [genPermission, genPermissionDetails],
         dateGenerated: new Date(),
         qrCode: "-",
         subEntriesCount
@@ -63,14 +71,15 @@ const createEntry = async (req, res) => {
             let subentryTitle = subentry.subtitle;
             let type = subentry.type;
             let content = subentry.content;
-            let specificPerm = subentry.specificPermissions;
+            let specificPermission = subentry.specificPermission;
+            let specificPermissionDetails = subentry.specificPermissionDetails;
     
             const newSubentry = new Subentry({
                 entryId: entry._id,
                 userEmail,
                 index,
                 subentryTitle,
-                specificPermission: specificPerm,
+                specificPermission: [specificPermission, specificPermissionDetails],
                 type,
                 content
             });
@@ -191,22 +200,18 @@ const getAppropriateEntryDetails = async (req, res) => {
         hasAccess = true;
         isOwner = true;
     }
-    if (!hasAccess && results.generalPermission[0].value != "private") {
-        if (results.generalPermission[0].value == "public") {
+    if (!hasAccess && results.generalPermission[0] != PRIVATE_OPTION) {
+        if (results.generalPermission[0] == PUBLIC_OPTION) {
             hasAccess = true;
         } else {
-            let valuesArray = results.generalPermission.map((perm)=>{return perm.value});
-            let detailsArray = results.generalPermission.map((perm)=>{return perm.details});
+            let detailsArray = results.generalPermission[1].map((perm)=>{return perm.value});
+            console.log(detailsArray);
 
-    
-            let i = 0;
-            for (i; i < valuesArray.length; i++) {
-                if (valuesArray[i] == "org" && detailsArray[i].split(",").includes(`@${email.split("@")[1]}`)) {
-                    hasAccess = true;
-                }
-                else if (valuesArray[i] == "persons" && detailsArray[i].split(",").includes(email)) {
-                    hasAccess = true;
-                }
+            if (results.generalPermission[0] == ORG_OPTION && detailsArray.includes(email.split("@")[1])) {
+                hasAccess = true;
+            }
+            else if (results.generalPermission[0] == PERSONS_OPTION && detailsArray.includes(email)) {
+                hasAccess = true;
             }
         }
     }
@@ -231,6 +236,7 @@ const getAppropriateEntryDetails = async (req, res) => {
 const getAppropriateSubentries = async (req, res) => {
     const entryId = req.body.entryId;
     const email = req.body.email;
+    const generalPermission = req.body.generalPermission;
 
     let subentries;
     try {
@@ -246,37 +252,90 @@ const getAppropriateSubentries = async (req, res) => {
     let results = [];
     let isOwner = false;
 
+    console.log(generalPermission);
+    console.log("======");
+
     subentries?.map((subentry)=>{
         let hasAccess = false;
-        console.log(subentry);
+        console.log(subentry.specificPermission);
 
+        // UNCOMMENT
         if (subentry.userEmail == email) {
             hasAccess = true;
             isOwner = true;
         }
-        if (!hasAccess && subentry.specificPermission[0].value != "private") {
-            if (subentry.specificPermission[0].value == "public") {
-                hasAccess = true;
-            } else {
-                let valuesArray = subentry.specificPermission.map((perm)=>{return perm.value});
-                let detailsArray = subentry.specificPermission.map((perm)=>{return perm.details});
 
-                console.log(valuesArray);
-                console.log(detailsArray);
-                console.log(email);
-                
-                let i = 0;
-                for (i; i < valuesArray.length; i++) {
-                    console.log(detailsArray[i].split(",").includes(email));
-                    if (valuesArray[i] == "org" && detailsArray[i].split(",").includes(`@${email.split("@")[1]}`)) {
-                        hasAccess = true;
+        // const S_RETAIN_OPTION = "retain";
+        // const S_PRIVATIZE_OPTION = "privatize";
+        // const S_NEWTYPE_ORG_OPTION = "neworg";
+        // const S_NEWTYPE_PERSONS_OPTION = "newpersons";
+        // const S_MORE_SPECIFIC_ORG_OPTION = "morespecificorg";
+        // const S_MORE_SPECIFIC_PERSONS_OPTION = "morespecificpersons";
+        let specificPermission = subentry.specificPermission;
+        if (!hasAccess && specificPermission[0] != S_PRIVATIZE_OPTION) {
+            let actualPermission;
+            if (specificPermission[0] == S_RETAIN_OPTION) {
+                actualPermission = generalPermission;
+            }
+            else if ([S_NEWTYPE_ORG_OPTION, S_NEWTYPE_PERSONS_OPTION].includes(specificPermission[0])) {
+                actualPermission = generalPermission.concat(specificPermission);
+            }
+            else if ([S_MORE_SPECIFIC_ORG_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(specificPermission[0])) {
+                actualPermission = specificPermission;
+            }
+
+            console.log(">>");
+            console.log(actualPermission);
+            
+            if (actualPermission[0] == PUBLIC_OPTION) {
+                hasAccess = true;
+            }
+            else if ([ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION].includes(actualPermission[0]) 
+            && actualPermission[1].includes(email.split("@")[1])) {
+                hasAccess = true;
+            }
+            else if ([PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(actualPermission[0])
+            && actualPermission[1].includes(email)) {
+                hasAccess = true;
+            }
+
+            if (actualPermission.length > 2) {
+                if ([ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION].includes(actualPermission[0])) {
+                    if (hasAccess && !actualPermission[1].includes(email.split("@")[1])) {
+                        hasAccess = false;
                     }
-                    else if (valuesArray[i] == "persons" && detailsArray[i].split(",").includes(email)) {
-                        hasAccess = true;
+                }
+                else if ([PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(actualPermission[0])) {
+                    if (hasAccess && !actualPermission[1].includes(email)) {
+                        hasAccess = false;
                     }
                 }
             }
         }
+
+        // if (!hasAccess && subentry.specificPermission[0].value != "private") {
+            // if (subentry.specificPermission[0].value == "public") {
+            //     hasAccess = true;
+            // } else {
+            //     let valuesArray = subentry.specificPermission.map((perm)=>{return perm.value});
+            //     let detailsArray = subentry.specificPermission.map((perm)=>{return perm.details});
+
+            //     console.log(valuesArray);
+            //     console.log(detailsArray);
+            //     console.log(email);
+                
+            //     let i = 0;
+            //     for (i; i < valuesArray.length; i++) {
+            //         console.log(detailsArray[i].split(",").includes(email));
+            //         if (valuesArray[i] == "org" && detailsArray[i].split(",").includes(`@${email.split("@")[1]}`)) {
+            //             hasAccess = true;
+            //         }
+            //         else if (valuesArray[i] == "persons" && detailsArray[i].split(",").includes(email)) {
+            //             hasAccess = true;
+            //         }
+            //     }
+            // }
+        // }
 
         if (hasAccess) {
             results.push(subentry);

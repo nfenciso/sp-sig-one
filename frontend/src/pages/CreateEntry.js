@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, generatePath } from "react-router-dom";
 
 import NavigationBar from "./components/NavigationBar";
 
 import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
 import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import Creatable, { useCreatable } from 'react-select/creatable';
+import Select from 'react-select';
 import { clone, cloneDeep, isNull, values } from "lodash";
 
 const CHOOSE_OPTION = "-1";
@@ -13,26 +15,26 @@ const PUBLIC_OPTION = "public";
 const ORG_OPTION = "org";
 const PERSONS_OPTION = "persons";
 const PRIVATE_OPTION = "private";
-const SAME_AS_GENERAL_OPTION = "99";
-const OPTIONS_ARRAY = [PUBLIC_OPTION, ORG_OPTION, PERSONS_OPTION, PRIVATE_OPTION];
+
+const S_RETAIN_OPTION = "retain";
+const S_PRIVATIZE_OPTION = "privatize";
+const S_NEWTYPE_ORG_OPTION = "neworg";
+const S_NEWTYPE_PERSONS_OPTION = "newpersons";
+const S_MORE_SPECIFIC_ORG_OPTION = "morespecificorg";
+const S_MORE_SPECIFIC_PERSONS_OPTION = "morespecificpersons";
+
 const DEFAULT_SUB = [
-    // {
-    //     index: 0,
-    //     subtitle: "",
-    //     type: "text",
-    //     content: "",
-    //     specificPermissions: [{
-    //         index: 0,
-    //         value: PUBLIC_OPTION
-    //     }] 
-    // }
-];
-const DEFAULT_GEN = [
     {
         index: 0,
-        value: PUBLIC_OPTION
+        subtitle: "",
+        type: "text",
+        content: "",
+        specificPermission: S_RETAIN_OPTION,
+        specificPermissionDetails: [],
+        extra: ""
     }
 ];
+const DEFAULT_GEN = PUBLIC_OPTION;
 
 const CreateEntry = () => {
 
@@ -40,23 +42,29 @@ const CreateEntry = () => {
 
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("user") ? true : null);
     const [entryTitle, setEntryTitle] = useState("");
-    const [subentries, setSubentries] = useState(DEFAULT_SUB);
+    const [subentries, setSubentries] = useState([]);
 
-    const [genPermissions, setGenPermissions] = useState(DEFAULT_GEN);
+    const [genPermission, setGenPermission] = useState(DEFAULT_GEN);
+    const [genPermissionDetails, setGenPermissionDetails] = useState([]);
+
+    const [orgOptions, setOrgOptions] = useState([]);
+    const [personsOptions, setPersonsOptions] = useState([]);
+
     const [isPublicPrivate, setIsPublicPrivate] = useState(true);
-    const [genPermValues, setGenPermValues] = useState([PUBLIC_OPTION]);
 
     const postCreateEntry = async () => {
         await postFetch(`${baseURL}/create-entry`, {
             userEmail: JSON.parse(localStorage.getItem("user")).email,
             entryTitle,
             subentriesCount: subentries.length,
-            generalPermission: genPermissions,
+            genPermission: genPermission,
+            genPermissionDetails: genPermissionDetails,
             subentries
         }).then((res)=>{
             setEntryTitle("");
-            setSubentries(DEFAULT_SUB);
-            setGenPermissions(DEFAULT_GEN);
+            setSubentries([]);
+            setGenPermission(DEFAULT_GEN);
+            setGenPermissionDetails([]);
             console.log(res);
         });
     };
@@ -71,13 +79,8 @@ const CreateEntry = () => {
     }, []);
 
     useEffect(()=>{
-        if ([PUBLIC_OPTION, PRIVATE_OPTION].includes(genPermissions[0].value)) {
-            setIsPublicPrivate(true);
-        } else {
-            setIsPublicPrivate(false);
-        }
-        setGenPermValues(genPermissions.map((perm)=>{return perm.value}));
-    }, [genPermissions]);
+        console.log(subentries);    
+    }, [subentries]);
 
     return(
         <div style={{backgroundColor: "#204183"}}>
@@ -103,153 +106,126 @@ const CreateEntry = () => {
             <hr />
             <Form.Group as={Row} className="mb-3" controlId="formPlaintextEmail">
                 <Form.Label column xs={3} md={2}>
-                General Permissions
+                General Permission
                 </Form.Label>
                 <Col xs={8} md={10}>
-                {
-                    genPermissions.map((perm)=>{
-                        return(
-                            <div key={"gen"+perm.index}>
-                            <Row>
-                            <Col>
-                            <Form.Select
-                            className="mb-2"
-                            value={perm.value}
-                            onChange={(e)=>{
-                                let newval = e.target.value;
-                                let newgen;
-                                if ([PUBLIC_OPTION, PRIVATE_OPTION].includes(newval)) {
-                                    newgen = [
-                                        {
-                                            index: 0,
-                                            value: newval
-                                        }
-                                    ];
-                                    setGenPermissions(newgen);
-                                } else {
-                                    newgen = cloneDeep(genPermissions);
-                                    newgen[perm.index].value = newval;
-                                    setGenPermissions(newgen);
-                                }
-                                let newSubentries = cloneDeep(subentries);
-                                newSubentries.map((nsub)=>{
-                                    nsub.specificPermissions = newgen;
-                                });
-                                setSubentries(newSubentries);
-                            }}
-                            aria-label="General permission select" >
-                            {
-                                perm.index != 0 ? 
-                                <option value={CHOOSE_OPTION}>Choose Permission</option> : null
-                            }
-                            {
-                                
-                            }
-                            <option value={PUBLIC_OPTION}>Public</option>
-                            {
-                                genPermValues.includes(ORG_OPTION) && perm.index != genPermValues.indexOf(ORG_OPTION) ?
-                                null :
-                                <option value={ORG_OPTION}>Organization</option>
-                            }
-                            {
-                                genPermValues.includes(PERSONS_OPTION) && perm.index != genPermValues.indexOf(PERSONS_OPTION) ?
-                                null :
-                                <option value={PERSONS_OPTION}>Specific Persons</option>
-                            }
-                            <option value={PRIVATE_OPTION}>Private</option>
-                            </Form.Select>
-                            </Col>
-                            <Col xs={1} md={2}>
-                            </Col>
-                            </Row>
-                            <Row>
-                            {/* <Col xs={1} md={1}>
-                            </Col> */}
-                            <Col>
-                            {
-                                [ORG_OPTION, PERSONS_OPTION].includes(perm.value) ? 
-                                <>
-                                <Form.Control type="text" 
-                                data-bs-theme="dark"
-                                className="mb-2"
-                                placeholder={
-                                    perm.value == ORG_OPTION ? "Ex. @up.edu.ph,@gbox.adnu.edu.ph [Separate by commas]"
-                                    : "Ex. johndoe@gmail.com,janedoe@gmail.com [Separate by commas]"
-                                } 
-                                value={perm.details ?? ""}
-                                onChange={(e)=>{
-                                    let newval = e.target.value;
-                                    let newgen = cloneDeep(genPermissions);
-                                    newgen[perm.index].details = newval;
-                                    setGenPermissions(newgen);
+                    <div>
+                    <Row>
+                    <Col>
+                    <Form.Select
+                        className="mb-2"
+                        value={genPermission}
+                        onChange={(e)=>{
+                            setGenPermission(e.target.value);
+                            setGenPermissionDetails([]);
 
-                                    let newSubentries = cloneDeep(subentries);
-                                    newSubentries.map((nsub)=>{
-                                        nsub.specificPermissions = newgen;
-                                    });
-                                    setSubentries(newSubentries);
-                                }}
-                                />
-                                </>
-                                : null
-                            }
-                            </Col>
-                            <Col xs={4} md={2}>
-                            </Col>
-                            </Row>
-                            </div>
-                        );
-                    })
-                }
-                <Row>
-                <Col md={6}>
-                <Button className="mb-1" 
-                    variant={
-                        genPermissions.length >= 2 ? "danger" : "warning"
-                    } 
-                    disabled={isPublicPrivate}
-                    onClick={()=>{
-                        let newgen;
-                        if (genPermissions.length >= 2) {
-                            newgen = cloneDeep(genPermissions);
-                            newgen.splice(1, 1);
-                            // newgen.map((sub)=>{
-                            //     sub.index = newgen.indexOf(sub);
-                            // });
-                            setGenPermissions(newgen);
-                        }
-                        else {
-                            newgen = cloneDeep(genPermissions);
-                            newgen.push({
-                                index: genPermissions.length,
-                                value: CHOOSE_OPTION
+                            let newSubentries = cloneDeep(subentries);
+
+                            newSubentries?.map((sub)=>{
+                                sub.specificPermission = S_RETAIN_OPTION;
+                                sub.specificPermissionDetails = [];
+                                sub.extra = "";
                             });
 
-                            setGenPermissions(newgen);
-                        }
+                            setSubentries(newSubentries);
+                        }}
+                        aria-label="General permission select" 
+                    >
+                        <option value={PUBLIC_OPTION}>Public</option>
+                        <option value={ORG_OPTION}>Organizations</option>
+                        <option value={PERSONS_OPTION}>Specific Persons</option>
+                        <option value={PRIVATE_OPTION}>Private</option>
+                    </Form.Select>
+                    </Col>
+                    {/* <Col xs={1} md={2}>
+                    </Col> */}
+                    </Row>
+                    <Row>
+                    <Col>
+                    {
+                        genPermission == ORG_OPTION ? 
+                        <Creatable 
+                            isMulti
+                            options={orgOptions}
+                            onCreateOption={(val)=>{
+                                setOrgOptions((currOpt)=>{
+                                    return([...currOpt, {
+                                        value: val,
+                                        label: val
+                                    }])
+                                });
 
-                        let newSubentries = cloneDeep(subentries);
-                        newSubentries.map((nsub)=>{
-                            nsub.specificPermissions = newgen;
-                        });
-                        setSubentries(newSubentries);
+                                setGenPermissionDetails((currOpt)=>{
+                                    return([...currOpt, {
+                                        value: val,
+                                        label: val
+                                    }])
+                                });
+
+                                let newSubentries = cloneDeep(subentries);
+
+                                newSubentries?.map((sub)=>{
+                                    sub.specificPermission = S_RETAIN_OPTION;
+                                    sub.specificPermissionDetails = [];
+                                    sub.extra = "";
+                                });
+
+                                setSubentries(newSubentries);
+
+                            }}
+                            value={genPermissionDetails}
+                            
+                            onChange={(val)=>{
+                                setGenPermissionDetails(val);
+
+                                let newSubentries = cloneDeep(subentries);
+
+                                newSubentries?.map((sub)=>{
+                                    sub.specificPermission = S_RETAIN_OPTION;
+                                    sub.specificPermissionDetails = [];
+                                    sub.extra = "";
+                                });
+
+                                setSubentries(newSubentries);
+                            }}
+
+                            placeholder={"Enter email domain of organization (example: up.edu.ph)"}
+                            noOptionsMessage={() => "No options. Type to add new organization."}
+                        />
+                        :
+                        genPermission == PERSONS_OPTION ?
+                        <Creatable 
+                            isMulti
+                            options={personsOptions}
+                            onCreateOption={(val)=>{
+                                setPersonsOptions((currOpt)=>{
+                                    return([...currOpt, {
+                                        value: val,
+                                        label: val
+                                    }])
+                                });
+
+                                setGenPermissionDetails((currOpt)=>{
+                                    return([...currOpt, {
+                                        value: val,
+                                        label: val
+                                    }])
+                                });
+                            }}
+                            value={genPermissionDetails}
+                            
+                            onChange={(val)=>{
+                                setGenPermissionDetails(val);
+                            }}
+
+                            placeholder={"Enter the email addresses of the specific persons"}
+                            noOptionsMessage={() => "No options. Type to add new email."}
+                        /> 
+                        : null
                     }
-                }>{
-                    genPermissions.length >= 2 ? "Delete" : "Add"
-                } 2nd Option [1st Option OR 2nd Option]</Button>
-                {/* <Button className="mb-1" variant="danger"
-                    disabled={genPermissions.length <= 1}
-                    onClick={()=>{
-                        let newgen = cloneDeep(genPermissions);
-                        newgen.splice(1, 1);
-                        // newgen.map((sub)=>{
-                        //     sub.index = newgen.indexOf(sub);
-                        // });
-                        setGenPermissions(newgen);
-                    }}
-                >Delete 2nd Option</Button> */}
-                </Col>
-                </Row>
+                    </Col>
+                    </Row>
+                    </div>
                 </Col>
             </Form.Group>
             </Card>
@@ -297,167 +273,159 @@ const CreateEntry = () => {
                             <Row>
                             <Form.Group as={Row} className="mb-3" controlId="formPlaintextEmail">
                                 <Form.Label column xs={3} md={2}>
-                                Specific Permissions
+                                Specific Permission
                                 </Form.Label>
                                 <Col xs={8} md={10}>
-                                {
-                                    subentry.specificPermissions.map((specificPerm)=>{
-                                        return(
-                                            <div key={subentry.index+"specific"+specificPerm.index}>
-                                            <Row>
-                                            <Col>
-                                            <Form.Select
-                                            className="mb-2"
-                                            value={specificPerm.value}
-                                            onChange={(e)=>{
-                                                let newval = e.target.value;
-                                                if ([PUBLIC_OPTION, PRIVATE_OPTION].includes(newval)) {
-                                                    let newSubentries = cloneDeep(subentries);
-                                                    newSubentries[subentry.index].specificPermissions = [
-                                                        {
-                                                            index: 0,
-                                                            value: newval
-                                                        }
-                                                    ];
-                                                    setSubentries(newSubentries);
-                                                } else {
-                                                    // let newgen = cloneDeep(genPermissions);
-                                                    // newgen[specificPerm.index].value = newval;
-                                                    // setGenPermissions(newgen);
-                                                    let newSubentries = cloneDeep(subentries);
-                                                    newSubentries[subentry.index].specificPermissions[specificPerm.index] = {
-                                                            index: specificPerm.index,
-                                                            value: newval
-                                                        };
-                                                    setSubentries(newSubentries);
-                                                }
-                                            }}
-                                            aria-label="Specific permission select" 
-                                            disabled={genPermValues[0] == PRIVATE_OPTION}
-                                            >
 
-                                            
-                                            {
-                                                specificPerm.index != 0 ? 
-                                                <option value={CHOOSE_OPTION}>Choose Permission</option> : null
-                                            }
+                                <Form.Select
+                                    className="mb-2"
+                                    value={subentry.specificPermission}
+                                    onChange={(e)=>{
+                                        let newval = e.target.value;
+                                        let newSubentries = cloneDeep(subentries);
 
-                                            <option value={PUBLIC_OPTION}>Public</option>
-                                            <option value={ORG_OPTION}>Organization</option>
-                                            <option value={PERSONS_OPTION}>Specific Persons</option>
-                                            <option value={PRIVATE_OPTION}>Private</option>
-                                            
-                                            {/* {
-                                                [ORG_OPTION, PERSONS_OPTION, CHOOSE_OPTION].includes(specificPerm.value) ? null :
-                                                <option value={PUBLIC_OPTION}>Public</option>
-                                            }
-                                            {
-                                                [PERSONS_OPTION].includes(specificPerm.value) ? null :
-                                                <option value={ORG_OPTION}>Organization</option>
-                                            }
-                                            {
-                                                [ORG_OPTION].includes(specificPerm.value) ? null :
-                                                <option value={PERSONS_OPTION}>Specific Persons</option>
-                                            }
-                                            
-                                            <option value={PRIVATE_OPTION}>Private</option> */}
-                                               
-                                             
-                                            
-                                            </Form.Select>
-                                            </Col>
-                                            <Col xs={1} md={2}>
-                                            </Col>
-                                            </Row>
-                                            <Row>
-                                            {/* <Col xs={1} md={1}>
-                                            </Col> */}
-                                            <Col>
-                                            {
-                                                [ORG_OPTION, PERSONS_OPTION].includes(specificPerm.value) ? 
-                                                <>
-                                                <Form.Control type="text" 
-                                                data-bs-theme="dark"
-                                                className="mb-2"
-                                                placeholder={
-                                                    specificPerm.value == ORG_OPTION ? "Ex. @up.edu.ph,@gbox.adnu.edu.ph [Separate by commas]"
-                                                    : "Ex. johndoe@gmail.com,janedoe@gmail.com [Separate by commas]"
-                                                } 
-                                                value={specificPerm.details ?? ""}
-                                                onChange={(e)=>{
-                                                    let newval = e.target.value;
-                                                    let newSubentries = cloneDeep(subentries);
-                                                    newSubentries[subentry.index].specificPermissions[specificPerm.index].details = newval;
-                                                    setSubentries(newSubentries);
-                                                }}
-                                                />
-                                                </>
-                                                : null
-                                            }
-                                            </Col>
-                                            <Col xs={4} md={2}>
-                                            </Col>
-                                            </Row>
-                                            </div>
-                                        );
-                                    })
-                                }
-                                <Row>
-                                <Col md={6}>
-                                {
-                                    genPermValues[0] == PUBLIC_OPTION ? 
-                                        <Button className="mb-1" 
-                                        variant={
-                                            subentry.specificPermissions.length >= 2 ? "danger" : "warning"
-                                        } 
-                                        disabled={
-                                            subentry.specificPermissions.map((sp)=>{
-                                                return sp.value
-                                            })
-                                            .includes(PUBLIC_OPTION)
-                                            ||
-                                            subentry.specificPermissions.map((sp)=>{
-                                                return sp.value
-                                            })
-                                            .includes(PRIVATE_OPTION)
+                                        newSubentries[subentry.index].specificPermission = newval;
+                                        
+                                        if (newval == S_MORE_SPECIFIC_ORG_OPTION || newval == S_MORE_SPECIFIC_PERSONS_OPTION) {
+                                            newSubentries[subentry.index].specificPermissionDetails = genPermissionDetails;
+                                        } else {
+                                            newSubentries[subentry.index].specificPermissionDetails = [];
                                         }
-                                        onClick={()=>{
-                                            if (subentry.specificPermissions.length >= 2) {
-                                                let newSubentries = cloneDeep(subentries);
-                                                newSubentries[subentry.index].specificPermissions.splice(1, 1);
-                                                // newSubentries.map((sub)=>{
-                                                //     sub.index = newSubentries.indexOf(sub);
-                                                // });
-                                                setSubentries(newSubentries);
-                                            }
-                                            else {
-                                                let newSubentries = cloneDeep(subentries);
-                                                newSubentries[subentry.index].specificPermissions.push({
-                                                    index: newSubentries[subentry.index].specificPermissions.length,
-                                                    value: CHOOSE_OPTION
-                                                });
 
-                                                setSubentries(newSubentries);
-                                            }
-                                        }
-                                    }>{
-                                        subentry.specificPermissions.length >= 2 ? "Delete" : "Add"
-                                    } 2nd Option</Button>
-                                    : null
-                                }
-                                {/* <Button className="mb-1" variant="danger"
-                                    disabled={genPermissions.length <= 1}
-                                    onClick={()=>{
-                                        let newgen = cloneDeep(genPermissions);
-                                        newgen.splice(1, 1);
-                                        // newgen.map((sub)=>{
-                                        //     sub.index = newgen.indexOf(sub);
-                                        // });
-                                        setGenPermissions(newgen);
+                                        newSubentries[subentry.index].extra = "";
+                                        
+                                        setSubentries(newSubentries);
                                     }}
-                                >Delete 2nd Option</Button> */}
-                                </Col>
-                                </Row>
+                                    aria-label="General permission select" 
+                                >
+                                    <option value={S_RETAIN_OPTION}>Same as General Permission</option>
+                                    {
+                                        genPermission == PRIVATE_OPTION?
+                                        null
+                                        :
+                                        <option value={S_PRIVATIZE_OPTION}>Privatize</option>
+                                    }
+                                    {
+                                        [PRIVATE_OPTION, ORG_OPTION].includes(genPermission)?
+                                        null
+                                        :
+                                        <option value={S_NEWTYPE_ORG_OPTION}>Add Another Type of Restriction: Organizations</option>
+                                    }
+                                    {
+                                        [PRIVATE_OPTION, PERSONS_OPTION].includes(genPermission)?
+                                        null
+                                        :
+                                        <option value={S_NEWTYPE_PERSONS_OPTION}>Add Another Type of Restriction: Persons</option>
+                                    }
+                                    
+                                    {
+                                        genPermission == ORG_OPTION && genPermissionDetails.length > 1?
+                                        <option value={S_MORE_SPECIFIC_ORG_OPTION}>Remove Item from List of Authorized Organizations</option>
+                                        :
+                                        null
+                                    }
+                                    {
+                                        genPermission == PERSONS_OPTION && genPermissionDetails.length > 1?
+                                        <option value={S_MORE_SPECIFIC_PERSONS_OPTION}>Remove Item from List of Authorized Persons</option>
+                                        :
+                                        null
+                                    }
+                                </Form.Select>
+                                {
+                                    subentry.specificPermission == S_NEWTYPE_ORG_OPTION ? 
+                                    <Creatable 
+                                        isMulti
+                                        options={orgOptions}
+                                        onCreateOption={(val)=>{
+                                            setOrgOptions((currOpt)=>{
+                                                return([...currOpt, {
+                                                    value: val,
+                                                    label: val
+                                                }])
+                                            });
+
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails.push({
+                                                value: val,
+                                                label: val
+                                            }); 
+                                            setSubentries(newSubentries);
+
+                                        }}
+                                        value={subentry.specificPermissionDetails}
+                                        
+                                        onChange={(val)=>{
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails = val;
+                                            setSubentries(newSubentries);
+                                        }}
+                                        placeholder={"Enter email domain of organization (example: up.edu.ph)"}
+                                        noOptionsMessage={() => "No options. Type to add new organization."}
+                                    />
+                                    : 
+                                    subentry.specificPermission == S_NEWTYPE_PERSONS_OPTION ?
+                                    <Creatable 
+                                        isMulti
+                                        options={personsOptions}
+                                        onCreateOption={(val)=>{
+                                            setPersonsOptions((currOpt)=>{
+                                                return([...currOpt, {
+                                                    value: val,
+                                                    label: val
+                                                }])
+                                            });
+
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails.push({
+                                                value: val,
+                                                label: val
+                                            }); 
+                                            setSubentries(newSubentries);
+                                        }}
+                                        value={subentry.specificPermissionDetails}
+                                        
+                                        onChange={(val)=>{
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails = val;
+                                            setSubentries(newSubentries);
+                                        }}
+
+                                        placeholder={"Enter the email addresses of the specific persons"}
+                                        noOptionsMessage={() => "No options. Type to add new email."}
+                                    /> 
+                                    :
+                                    subentry.specificPermission == S_MORE_SPECIFIC_ORG_OPTION?
+                                    <Select 
+                                        isMulti
+                                        options={orgOptions}
+                                        value={subentry.specificPermissionDetails}
+                                        
+                                        onChange={(val)=>{
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails = val;
+                                            setSubentries(newSubentries);
+                                        }}
+                                        placeholder={"Select email domain of organization"}
+                                        noOptionsMessage={() => "Remove an Item."}
+                                    />
+                                    :
+                                    subentry.specificPermission == S_MORE_SPECIFIC_PERSONS_OPTION?
+                                    <Select 
+                                        isMulti
+                                        options={personsOptions}
+                                        value={subentry.specificPermissionDetails}
+                                        
+                                        onChange={(val)=>{
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].specificPermissionDetails = val;
+                                            setSubentries(newSubentries);
+                                        }}
+                                        placeholder={"Select email address"}
+                                        noOptionsMessage={() => "Remove an Item."}
+                                    />
+                                    :
+                                    null
+                                }
                                 </Col>
                             </Form.Group>
                             </Row>
@@ -468,17 +436,14 @@ const CreateEntry = () => {
                             <hr />
                             <Row>
                                 <Col>
-                                {/* <Col></Col> */}
-                                {/* <Col xs={1}> */}
                                 <Button variant="danger" onClick={()=>{
                                     let newSubentries = cloneDeep(subentries);
                                     newSubentries.splice(subentry.index, 1);
-                                    newSubentries.map((sub)=>{
+                                    newSubentries?.map((sub)=>{
                                         sub.index = newSubentries.indexOf(sub);
                                     });
                                     setSubentries(newSubentries);
                                 }}>Delete</Button>
-                                {/* </Col> */}
                                 </Col>
                             </Row>
                             </Form>
@@ -496,7 +461,9 @@ const CreateEntry = () => {
                         subtitle: "",
                         type: "text",
                         content: "",
-                        specificPermissions: genPermissions
+                        specificPermission: S_RETAIN_OPTION,
+                        specificPermissionDetails: [],
+                        extra: ""
                     });
 
                     setSubentries(newSubentries);
