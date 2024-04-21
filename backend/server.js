@@ -17,7 +17,7 @@ const port = process.env.PORT || 5000;
 
 app.use(cors({
     origin: ["https://sp-sig-one.vercel.app"],
-    methods: ["POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
 }));
 app.use(urlencoded({ extended: true }));
