@@ -3,7 +3,7 @@ dotenv.config();
 
 import mongoose from 'mongoose';
 
-const uri = process.env.ATLAS_URI? process.env.ATLAS_URI : process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI;
 
 async function connectToDB() {
     try {
