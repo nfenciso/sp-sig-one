@@ -20,6 +20,9 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
 }));
+
+connectToDB();
+
 app.use(urlencoded({ extended: true }));
 app.use(json());
 
@@ -28,7 +31,7 @@ app.use(entryRoutes);
 
 app.listen(port, () => {
     // perform a database connection when server starts
-    connectToDB();
+    
     handleDisconnectDB();
 
     console.log(`Server is running on port: ${port}`);
