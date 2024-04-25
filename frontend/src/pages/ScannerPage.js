@@ -37,8 +37,14 @@ const ScannerPage = () => {
 
     useEffect(()=>{
         if (scannedResult) {
-            if (checkForHexRegExp.test(scannedResult)) {
-                navigate(`/view-entry/${scannedResult}`);
+            let partResult = scannedResult.split("/");
+            partResult = partResult[partResult.length - 1];
+            if (partResult.charAt(partResult.length - 1) == "/") {
+                partResult = partResult.slice(0, -1);
+            }
+
+            if (checkForHexRegExp.test(partResult)) {
+                navigate(`/view-entry/${partResult}`);
             } else {
                 alert(scannedResult);
                 setScannedResult(null);

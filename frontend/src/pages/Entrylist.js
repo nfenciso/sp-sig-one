@@ -35,7 +35,7 @@ const Entrylist = () => {
             let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
 
             res.results.map((entry, index)=>{
-                QRCode.toDataURL(entry._id, { errorCorrectionLevel: 'H' }, function (err, url) {
+                QRCode.toDataURL(`${baseURL}/view-entry/${entry._id}`, { errorCorrectionLevel: 'H' }, function (err, url) {
                     qrList[index] = url;
                 });
             });

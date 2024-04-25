@@ -18,6 +18,8 @@ import QRCode from "qrcode";
 // Reference: https://stackoverflow.com/questions/61921515/i-have-an-error-with-pdf-js-with-the-global-worker-and-the-async
 const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.mjs');
 
+var checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
+
 const ScannerPDFPage = () => {
 
     const navigate = useNavigate();
@@ -152,7 +154,17 @@ const ScannerPDFPage = () => {
                             console.log('QR Code Text: ', qrCodeText);
 
                             if (qrCodeText) {
-                                navigate(`/view-entry/${qrCodeText}`);
+                                let partResult = qrCodeText.split("/");
+                                partResult = partResult[partResult.length - 1];
+                                if (partResult.charAt(partResult.length - 1) == "/") {
+                                    partResult = partResult.slice(0, -1);
+                                }
+
+                                if (checkForHexRegExp.test(partResult)) {
+                                    navigate(`/view-entry/${partResult}`);
+                                } else {
+                                    alert("No valid sigONE QR Code found!");
+                                }
                             }
                         });
                     });

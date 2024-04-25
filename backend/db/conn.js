@@ -4,12 +4,20 @@ dotenv.config();
 import mongoose from 'mongoose';
 
 const uri = process.env.MONGODB_URI;
+mongoose.Promise = global.Promise;
+let isConnected;
 
 async function connectToDB() {
-    console.log("Connecting to DB...");
     try {
-      await mongoose.connect(uri);
-      console.log("Successfully connected to MongoDB!")
+      if (isConnected) {
+        return Promise.resolve();
+      }
+
+      return mongoose.connect(uri)
+      .then(db => {
+        isConnected = db.connections[0].readyState;
+        console.log("Successfully connected to MongoDB!");
+      });
     } 
     catch (err) {
       console.log(err);
