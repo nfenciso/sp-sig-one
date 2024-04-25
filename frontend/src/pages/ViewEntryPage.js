@@ -133,8 +133,15 @@ const ViewEntryPage = () => {
                                 null
                             }
                             </Col>
-                            <Col className="list-right-col-subentries p-3">
-                            {subentry.content}
+                            <Col className="list-right-col-subentries p-3" 
+                                style={{overflow: "auto", wordBreak: "break-all", whiteSpace: "normal", maxHeight: "30vh"}}
+                            >
+                            {
+                                subentry.type == "text" ?
+                                subentry.content
+                                :
+                                <img src={subentry.content} />
+                            }
                             </Col>
                         </Row>
                     );

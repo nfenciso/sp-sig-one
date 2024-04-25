@@ -53,6 +53,7 @@ const CreateEntry = () => {
     const [isPublicPrivate, setIsPublicPrivate] = useState(true);
 
     const postCreateEntry = async () => {
+        alert("Creating entry... Another alert will pop up when done. Please wait.");
         await postFetch(`${baseURL}/create-entry`, {
             userEmail: JSON.parse(localStorage.getItem("user")).email,
             entryTitle,
@@ -61,11 +62,17 @@ const CreateEntry = () => {
             genPermissionDetails: genPermissionDetails,
             subentries
         }).then((res)=>{
-            setEntryTitle("");
-            setSubentries([]);
-            setGenPermission(DEFAULT_GEN);
-            setGenPermissionDetails([]);
             console.log(res);
+
+            if (res) {
+                setEntryTitle("");
+                setSubentries([]);
+                setGenPermission(DEFAULT_GEN);
+                setGenPermissionDetails([]);
+                alert("Entry created!");
+            } else {
+                alert("Failed creating entry")
+            }
         });
     };
     
@@ -79,6 +86,7 @@ const CreateEntry = () => {
     }, []);
 
     useEffect(()=>{
+        console.log(genPermissionDetails);
         console.log(subentries);    
     }, [subentries]);
 
@@ -249,10 +257,26 @@ const CreateEntry = () => {
                                         }}
                                         placeholder="Enter Subentry Title here" />
                                 </Form.Group>
+                                <div style={{display: "flex", gap: "10px"}}>
+                                <Button variant="outline-secondary" active={subentry.type == "text"} onClick={()=>{
+                                    let newSubentries = cloneDeep(subentries);
+                                    newSubentries[subentry.index].type = "text";
+                                    newSubentries[subentry.index].content = "";
+                                    setSubentries(newSubentries);
+                                }}>Text</Button>
+                                <Button variant="outline-secondary" active={subentry.type == "image"} onClick={()=>{
+                                    let newSubentries = cloneDeep(subentries);
+                                    newSubentries[subentry.index].type = "image";
+                                    newSubentries[subentry.index].content = "";
+                                    setSubentries(newSubentries);
+                                }}>Image</Button>
+                                </div>
                             </Col>
                             <Col>
                             <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                                <Form.Label>Subentry {subentry.index} Content</Form.Label>
+                            <Form.Label>Subentry {subentry.index} Content</Form.Label>
+                            {
+                                subentry.type == "text" ?
                                 <Form.Control as="textarea" 
                                     value={subentry.content}
                                     onChange={(e)=>{
@@ -261,7 +285,41 @@ const CreateEntry = () => {
                                         setSubentries(newSubentries);
                                     }}
                                     rows={3} 
-                                    placeholder="Enter Subentry Content here"/>
+                                    placeholder="Enter Subentry Content here"
+                                />
+                                :
+                                <div>
+                                    <input 
+                                        id={"img-upload-"+subentry.index}
+                                        type="file" accept="image/*" 
+                                        onClick={()=>{
+                                            document.getElementById("img-upload-"+subentry.index).value = null;
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].content = "";
+                                            setSubentries(newSubentries);
+                                        }}
+                                        onChange={(e) => {
+                                        if (e.target.files[0]) {
+                                            if (e.target.files[0].size > 1024*1024) {
+                                                alert("Image must not exceed 1MB!");
+                                                document.getElementById("img-upload-"+subentry.index).value = null;
+                                            }
+                                            else {
+                                                var reader = new FileReader();
+                                                reader.onload = function(){
+                                                    //var output = document.getElementById('output_image');
+                                                    //output.src = reader.result;
+                                                    let newSubentries = cloneDeep(subentries);
+                                                    newSubentries[subentry.index].content = reader.result;
+                                                    setSubentries(newSubentries);
+                                                }
+                                                reader.readAsDataURL(e.target.files[0]);
+                                            }
+                                            
+                                        }
+                                    }} />
+                                </div>
+                            }
                             </Form.Group>
                             </Col>
                             </Row>
@@ -397,7 +455,7 @@ const CreateEntry = () => {
                                     subentry.specificPermission == S_MORE_SPECIFIC_ORG_OPTION?
                                     <Select 
                                         isMulti
-                                        options={orgOptions}
+                                        options={orgOptions.filter(val => genPermissionDetails.includes(val))}
                                         value={subentry.specificPermissionDetails}
                                         
                                         onChange={(val)=>{
@@ -412,7 +470,7 @@ const CreateEntry = () => {
                                     subentry.specificPermission == S_MORE_SPECIFIC_PERSONS_OPTION?
                                     <Select 
                                         isMulti
-                                        options={personsOptions}
+                                        options={personsOptions.filter(val => genPermissionDetails.includes(val))}
                                         value={subentry.specificPermissionDetails}
                                         
                                         onChange={(val)=>{
@@ -471,7 +529,53 @@ const CreateEntry = () => {
                 <span>  </span>
                 <Button className="mb-3" variant="light" onClick={()=>{
                     if (window.confirm("Confirm create entry?") == true) {
-                        postCreateEntry();
+                        var invalidInput = false;
+                        var reasonNum = 0;
+
+                        if (entryTitle.trim() == "") {
+                            invalidInput = true;
+                            reasonNum = 1;
+                        }
+                        if (!invalidInput) {
+                            subentries.map((sub)=>{
+                                if (!invalidInput) {
+                                    if (sub.subtitle.trim() == "") {
+                                        invalidInput = true;
+                                        reasonNum = 2;
+                                    }
+                                    else if (sub.content.trim() == "") {
+                                        invalidInput = true;
+                                        reasonNum = 3;
+                                    }
+                                }
+                            });
+                        }
+                        if (!invalidInput &&
+                            [ORG_OPTION, PERSONS_OPTION].includes(genPermission) && genPermissionDetails.length == 0) {
+                            invalidInput = true;
+                            reasonNum = 4;
+                        }
+                        if (!invalidInput) {
+                            subentries.map((sub)=>{
+                                if (!invalidInput) {
+                                    if (
+                                        [S_NEWTYPE_ORG_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_ORG_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(sub.specificPermission)
+                                        && sub.specificPermissionDetails.length == 0
+                                    ) {
+                                        invalidInput = true;
+                                        reasonNum = 5;
+                                    }
+                                }
+                            });
+                        }
+                        
+                        //alert(`invalidInput: ${invalidInput} | reason: ${reasonNum}`);
+                        
+                        if (invalidInput) {
+                            alert("There is missing information.")
+                        } else {
+                            postCreateEntry();
+                        }
                     }
                 }}>Create and Publish</Button>
                 </Col>
@@ -482,3 +586,15 @@ const CreateEntry = () => {
 };
 
 export default CreateEntry;
+
+// const PUBLIC_OPTION = "public";
+// const ORG_OPTION = "org";
+// const PERSONS_OPTION = "persons";
+// const PRIVATE_OPTION = "private";
+
+// const S_RETAIN_OPTION = "retain";
+// const S_PRIVATIZE_OPTION = "privatize";
+// const S_NEWTYPE_ORG_OPTION = "neworg";
+// const S_NEWTYPE_PERSONS_OPTION = "newpersons";
+// const S_MORE_SPECIFIC_ORG_OPTION = "morespecificorg";
+// const S_MORE_SPECIFIC_PERSONS_OPTION = "morespecificpersons";
