@@ -103,9 +103,15 @@ const NavigationBar = ({
                                 </NavDropdown>
                             </Nav>
                             :
-                            <Nav.Item>
-                                Logout
-                            </Nav.Item>
+                            // <Nav.Item>
+                            //     Logout
+                            // </Nav.Item>
+                            <a className="links" onClick={()=>{
+                                localStorage.removeItem("user");
+                                setIsLoggedIn(false);
+                                //navigate("/");
+                                window.location.reload();
+                            }} >[Logout]</a>
                         }
                     </Navbar.Collapse> :
                     <Navbar.Collapse className="justify-content-end">

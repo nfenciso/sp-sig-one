@@ -7,6 +7,7 @@ import sampleQR from '../assets/sampleqr.png';
 import { IoMdDownload } from "react-icons/io";
 import { FaRegFilePdf } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import NavigationBar from "./components/NavigationBar";
 
@@ -78,10 +79,10 @@ const Entrylist = () => {
             <Container fluid>
                 {   
                     isNull(isLoggedIn) ?
-                    null :
+                    <Row><AiOutlineLoading3Quarters className="loading" color="white"  /></Row> :
                     isLoggedIn ?
                     isNull(qrCodes) ?
-                    null :
+                    <Row ><AiOutlineLoading3Quarters className="loading" color="white"  /></Row> :
                     qrCodes.length == 0 ?
                     <Row style={{marginTop: "30px"}}>
                         <Col  className="my-1 mx-auto" key="00" >

@@ -8,6 +8,8 @@ import { postFetch } from "../utils/requests";
 import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { isNull } from "lodash";
 
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+
 const PUBLIC_OPTION = "public";
 const ORG_OPTION = "org";
 const PERSONS_OPTION = "persons";
@@ -28,6 +30,7 @@ const ViewEntryPage = () => {
 
     const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("user") ? true : null);
     const [subentries, setSubentries] = useState([]);
+    const [loadedSubentries, setLoadedSubentries] = useState(false);
     const [entryDetails, setEntryDetails] = useState(null);
     const email = useRef(null);
     const [isOwner, setIsOwner] = useState(null);
@@ -38,6 +41,8 @@ const ViewEntryPage = () => {
             email: email.current,
             generalPermission
         }).then((res)=>{
+            setLoadedSubentries(true);
+            document.body.style.overflowY = "auto";
             setSubentries(res.results);
             console.log(res.results);
         });
@@ -61,6 +66,8 @@ const ViewEntryPage = () => {
     }
     
     useEffect(()=>{
+        document.body.style.overflowY = "hidden";
+
         let userString = localStorage.getItem("user");
         email.current = JSON.parse(userString)?.email;
 
@@ -116,6 +123,7 @@ const ViewEntryPage = () => {
                 }
                 </Row>
                 {
+                    loadedSubentries ?
                 subentries?.map((subentry)=>{
                     return(
                         <Row className="mb-3 bg-white mx-auto" key={subentry.index}>
@@ -184,6 +192,7 @@ const ViewEntryPage = () => {
                         </Row>
                     );
                 })
+                    : <Row><AiOutlineLoading3Quarters className="loading" color="white"  /></Row>
                 }
                 </> 
                 :
@@ -197,7 +206,8 @@ const ViewEntryPage = () => {
                         </Card>
                         </Col>
                     </Row>
-                : null
+                : 
+                <Row><AiOutlineLoading3Quarters className="loading" color="white"  /></Row>
             }
             </Container>
         </>
