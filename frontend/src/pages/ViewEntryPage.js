@@ -5,7 +5,7 @@ import NavigationBar from "./components/NavigationBar";
 
 import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { isNull } from "lodash";
 
 const PUBLIC_OPTION = "public";
@@ -68,17 +68,31 @@ const ViewEntryPage = () => {
             setIsLoggedIn(true);
             fetchAppropriateDetails();
             
+        } else {
+            email.current = "public";
+            fetchAppropriateDetails();
         }
 
     }, []);
+
+    useEffect(()=>{
+        let userString = localStorage.getItem("user");
+        email.current = JSON.parse(userString)?.email;
+
+        if (!userString) {
+            email.current = "public";
+        }
+
+        fetchAppropriateDetails();
+    },[isLoggedIn]);
 
     return(
         <>
             <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
             <Container>
             {
-                isNull(isLoggedIn) ?
-                null :
+                // isNull(isLoggedIn) ?
+                // null :
                 !isNull(entryDetails) ? 
                 entryDetails != 403 ?
                 <>
@@ -134,13 +148,37 @@ const ViewEntryPage = () => {
                             }
                             </Col>
                             <Col className="list-right-col-subentries p-3" 
-                                style={{overflow: "auto", wordBreak: "break-all", whiteSpace: "normal", maxHeight: "30vh"}}
+                                style={{overflow: "auto", wordBreak: "break-all", whiteSpace: "normal", maxHeight: "40vh",
+                                        position: "relative"}}
                             >
                             {
                                 subentry.type == "text" ?
                                 subentry.content
                                 :
+                                <div>
                                 <img src={subentry.content} />
+                                {/* <div
+                                style={{
+                                    position: "absolute", 
+                                    bottom: "0px", 
+                                    width: "100%",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    padding: "4px",
+                                    }}>hello
+                                </div> */}
+                                {/* <Button onClick={()=>{
+                                    var image = new Image();
+                                    image.src = subentry.content;
+
+                                    var string = `<html style="height: 100%;"><head><meta name="viewport" content="width=device-width, minimum-scale=0.1"><title>wNr8YaoI1937wAAAABJRU5ErkJggg== (2000×1414)</title></head><body style="margin: 0px; height: 100%; background-color: rgb(14, 14, 14);"><img style="display: block;-webkit-user-select: none;margin: auto;cursor: zoom-in;background-color: hsl(0, 0%, 90%);transition: background-color 300ms;" src=${subentry.content} width="971" height="686" ></body></html>`;//width="971" height="686"
+                            
+                                    var w = window.open("");
+                                    w.document.write(string);
+                                    w.document.close();
+                                }}>View Image</Button> */}
+                                {/* <a href={subentry.content} target="_blank">View Image</a> */}
+                                </div>
                             }
                             </Col>
                         </Row>

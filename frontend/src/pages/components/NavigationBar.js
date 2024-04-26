@@ -94,7 +94,8 @@ const NavigationBar = ({
                                         onClick={()=>{
                                             localStorage.removeItem("user");
                                             setIsLoggedIn(false);
-                                            navigate("/");
+                                            //navigate("/");
+                                            window.location.reload();
                                         }}
                                         
                                     >Logout</NavDropdown.Item>

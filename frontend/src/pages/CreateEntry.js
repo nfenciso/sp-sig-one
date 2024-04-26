@@ -10,6 +10,9 @@ import Creatable, { useCreatable } from 'react-select/creatable';
 import Select from 'react-select';
 import { clone, cloneDeep, isNull, values } from "lodash";
 
+import { RxText } from "react-icons/rx";
+import { FaRegImages } from "react-icons/fa";
+
 const CHOOSE_OPTION = "-1";
 const PUBLIC_OPTION = "public";
 const ORG_OPTION = "org";
@@ -44,16 +47,16 @@ const CreateEntry = () => {
     const [entryTitle, setEntryTitle] = useState("");
     const [subentries, setSubentries] = useState([]);
 
+    const [sending, setSending] = useState(false);
+
     const [genPermission, setGenPermission] = useState(DEFAULT_GEN);
     const [genPermissionDetails, setGenPermissionDetails] = useState([]);
 
     const [orgOptions, setOrgOptions] = useState([]);
     const [personsOptions, setPersonsOptions] = useState([]);
 
-    const [isPublicPrivate, setIsPublicPrivate] = useState(true);
-
     const postCreateEntry = async () => {
-        alert("Creating entry... Another alert will pop up when done. Please wait.");
+        setSending(true);
         await postFetch(`${baseURL}/create-entry`, {
             userEmail: JSON.parse(localStorage.getItem("user")).email,
             entryTitle,
@@ -65,11 +68,12 @@ const CreateEntry = () => {
             console.log(res);
 
             if (res) {
+                alert("Entry created!");
+                setSending(false);
                 setEntryTitle("");
                 setSubentries([]);
                 setGenPermission(DEFAULT_GEN);
                 setGenPermissionDetails([]);
-                alert("Entry created!");
             } else {
                 alert("Failed creating entry")
             }
@@ -108,6 +112,7 @@ const CreateEntry = () => {
                     onChange={(e)=>{
                         setEntryTitle(e.target.value);
                     }} 
+                    maxLength={300}
                 />
                 </Col>
             </Form.Group>
@@ -255,21 +260,40 @@ const CreateEntry = () => {
                                             newSubentries[subentry.index].subtitle = e.target.value;
                                             setSubentries(newSubentries);
                                         }}
-                                        placeholder="Enter Subentry Title here" />
+                                        placeholder="Enter Subentry Title here" 
+                                        maxLength={300}
+                                        />
                                 </Form.Group>
                                 <div style={{display: "flex", gap: "10px"}}>
-                                <Button variant="outline-secondary" active={subentry.type == "text"} onClick={()=>{
+                                <Button variant={
+                                    subentry.type == "text" ?
+                                    "secondary" : "outline-secondary"
+                                } disabled={subentry.type == "text"}  onClick={()=>{
                                     let newSubentries = cloneDeep(subentries);
                                     newSubentries[subentry.index].type = "text";
                                     newSubentries[subentry.index].content = "";
                                     setSubentries(newSubentries);
-                                }}>Text</Button>
-                                <Button variant="outline-secondary" active={subentry.type == "image"} onClick={()=>{
-                                    let newSubentries = cloneDeep(subentries);
-                                    newSubentries[subentry.index].type = "image";
-                                    newSubentries[subentry.index].content = "";
-                                    setSubentries(newSubentries);
-                                }}>Image</Button>
+                                }}><RxText /></Button>
+                                <Button variant={
+                                    subentry.type == "image" ?
+                                    "secondary" : "outline-secondary"
+                                }disabled={subentry.type == "image"} onClick={()=>{
+                                    let imgEntryCount = 0;
+                                    subentries.map((sub)=>{
+                                        if (sub.type == "image") {
+                                            imgEntryCount+=1;
+                                        }
+                                    });
+
+                                    if (imgEntryCount < 2) {
+                                        let newSubentries = cloneDeep(subentries);
+                                        newSubentries[subentry.index].type = "image";
+                                        newSubentries[subentry.index].content = "";
+                                        setSubentries(newSubentries);
+                                    } else {
+                                        alert("Each Entry can only have up to 2 Image Subentries.");
+                                    }
+                                }}><FaRegImages /></Button>
                                 </div>
                             </Col>
                             <Col>
@@ -286,6 +310,7 @@ const CreateEntry = () => {
                                     }}
                                     rows={3} 
                                     placeholder="Enter Subentry Content here"
+                                    maxLength={1000}
                                 />
                                 :
                                 <div>
@@ -512,7 +537,9 @@ const CreateEntry = () => {
             <Container>
             <Row>
                 <Col>
-                <Button className="mb-3" variant="light" onClick={()=>{
+                <Button className="mb-3" variant="light" 
+                    disabled={subentries.length>=10}
+                    onClick={()=>{
                     let newSubentries = cloneDeep(subentries);
                     newSubentries.push({
                         index: subentries.length,
@@ -527,7 +554,9 @@ const CreateEntry = () => {
                     setSubentries(newSubentries);
                 }}>Add Subentry</Button>
                 <span>  </span>
-                <Button className="mb-3" variant="light" onClick={()=>{
+                <Button 
+                    disabled={sending}
+                    className="mb-3" variant="light" onClick={()=>{
                     if (window.confirm("Confirm create entry?") == true) {
                         var invalidInput = false;
                         var reasonNum = 0;
