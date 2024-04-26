@@ -48,7 +48,7 @@ const ViewEntryPage = () => {
             entryId: id,
             email: email.current
         }).then((res)=>{
-            if (res.access) {
+            if (res?.access) {
                 console.log(res);
                 setIsOwner(res.isOwner);
                 setEntryDetails(res.results);

@@ -55,7 +55,7 @@ const NavigationBar = ({
                         navigate("/");
                     }}
                     id="navbarBrand"
-                >SIG-ONE</Navbar.Brand>
+                >Sig One</Navbar.Brand>
                 <Navbar.Toggle />
                 {/* {
                     isLoggedIn ?
