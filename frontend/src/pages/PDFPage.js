@@ -321,6 +321,9 @@ const PDFPage = () => {
                 }} />
                 {
                     entries ?
+                    entries.length == 0 ?
+                    <p><b>Create an Entry first.</b></p>
+                    :
                     <select id="qrselect"
                         onChange={(e)=>{
                             QRCode.toDataURL(e.target.value, { errorCorrectionLevel: 'H' }, function (err, url) {
