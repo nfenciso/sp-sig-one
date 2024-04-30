@@ -336,7 +336,7 @@ const PDFPage = () => {
                         {
                             entries.map((entry)=>{
                                 return(
-                                    <option value={entry._id} key={entry._id}>{entry.entryTitle}</option>
+                                    <option value={entry._id} key={entry._id}>{entry.entryTitle} - {entry.dateGenerated}</option>
                                 );
                             })
                         }

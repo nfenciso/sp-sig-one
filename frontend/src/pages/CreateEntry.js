@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate, generatePath } from "react-router-dom";
 
 import NavigationBar from "./components/NavigationBar";
@@ -9,9 +9,11 @@ import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
 import Creatable, { useCreatable } from 'react-select/creatable';
 import Select from 'react-select';
 import { clone, cloneDeep, isNull, values } from "lodash";
+import SignatureCanvas from 'react-signature-canvas';
 
 import { RxText } from "react-icons/rx";
 import { FaRegImages } from "react-icons/fa";
+import { FaPen } from "react-icons/fa";
 
 const CHOOSE_OPTION = "-1";
 const PUBLIC_OPTION = "public";
@@ -54,6 +56,8 @@ const CreateEntry = () => {
 
     const [orgOptions, setOrgOptions] = useState([]);
     const [personsOptions, setPersonsOptions] = useState([]);
+
+    const sigCanvas = useRef([]);
 
     const postCreateEntry = async () => {
         setSending(true);
@@ -279,11 +283,18 @@ const CreateEntry = () => {
                                     "secondary" : "outline-secondary"
                                 }disabled={subentry.type == "image"} onClick={()=>{
                                     let imgEntryCount = 0;
-                                    subentries.map((sub)=>{
-                                        if (sub.type == "image") {
+                                    let imgIdx = [];
+                                    subentries.map((sub, index)=>{
+                                        if (sub.type == "image" || sub.type == "canvas") {
                                             imgEntryCount+=1;
+                                            imgIdx.push(index);
                                         }
                                     });
+
+                                    if (imgIdx.includes(subentry.index)) {
+                                        imgEntryCount-=1;
+                                    }
+
 
                                     if (imgEntryCount < 2) {
                                         let newSubentries = cloneDeep(subentries);
@@ -291,9 +302,35 @@ const CreateEntry = () => {
                                         newSubentries[subentry.index].content = "";
                                         setSubentries(newSubentries);
                                     } else {
-                                        alert("Each Entry can only have up to 2 Image Subentries.");
+                                        alert("Each Entry can only have up to 2 Image/Canvas Subentries.");
                                     }
                                 }}><FaRegImages /></Button>
+                                <Button variant={
+                                    subentry.type == "canvas" ?
+                                    "secondary" : "outline-secondary"
+                                }disabled={subentry.type == "canvas"} onClick={()=>{
+                                    let imgEntryCount = 0;
+                                    let imgIdx = [];
+                                    subentries.map((sub, index)=>{
+                                        if (sub.type == "image" || sub.type == "canvas") {
+                                            imgEntryCount+=1;
+                                            imgIdx.push(index);
+                                        }
+                                    });
+
+                                    if (imgIdx.includes(subentry.index)) {
+                                        imgEntryCount-=1;
+                                    }
+
+                                    if (imgEntryCount < 2) {
+                                        let newSubentries = cloneDeep(subentries);
+                                        newSubentries[subentry.index].type = "canvas";
+                                        newSubentries[subentry.index].content = "";
+                                        setSubentries(newSubentries);
+                                    } else {
+                                        alert("Each Entry can only have up to 2 Image/Canvas Subentries.");
+                                    }
+                                }}><FaPen /></Button>
                                 </div>
                             </Col>
                             <Col>
@@ -313,6 +350,7 @@ const CreateEntry = () => {
                                     maxLength={1000}
                                 />
                                 :
+                                subentry.type == "image" ?
                                 <div>
                                     <input 
                                         id={"img-upload-"+subentry.index}
@@ -344,6 +382,36 @@ const CreateEntry = () => {
                                         }
                                     }} />
                                 </div>
+                                :
+                                <>
+                                    <div>
+                                        <SignatureCanvas
+                                            ref={ref => sigCanvas.current[subentry.index] = ref}
+                                            canvasProps={{
+                                                className: "signatureCanvas"
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{display: "flex", gap: "5px"}}>
+                                        <Button variant="outline-secondary" onClick={()=>{
+                                            sigCanvas.current[subentry.index].clear();
+
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].content = "";
+                                            setSubentries(newSubentries);
+                                        }}>Clear</Button>
+                                        <Button variant="outline-secondary" onClick={()=>{
+                                            let sig = sigCanvas.current[subentry.index].getCanvas().toDataURL("image/png");
+
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].type = "canvas";
+                                            newSubentries[subentry.index].content = sig;
+                                            setSubentries(newSubentries);
+                                        }}
+                                            disabled={subentry.content != ""}
+                                        >Confirm</Button>
+                                    </div>
+                                </>
                             }
                             </Form.Group>
                             </Col>
