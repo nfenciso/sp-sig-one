@@ -388,8 +388,9 @@ const CreateEntry = () => {
                                         <SignatureCanvas
                                             ref={ref => sigCanvas.current[subentry.index] = ref}
                                             canvasProps={{
-                                                className: "signatureCanvas"
+                                                className: "signatureCanvas",
                                             }}
+                                            clearOnResize={false}
                                         />
                                     </div>
                                     <div style={{display: "flex", gap: "5px"}}>
