@@ -99,7 +99,7 @@ const CreateEntry = () => {
     }, [subentries]);
 
     return(
-        <div style={{backgroundColor: "#204183"}}>
+        <Container style={{backgroundColor: "#204183"}} fluid>
             <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
             <Container>
             {/*  data-bs-theme="dark" */}
@@ -254,7 +254,7 @@ const CreateEntry = () => {
                             <Form 
                             >
                             <Row>
-                            <Col xs={4}>
+                            <Col xs={10} sm={4}>
                                 <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                                     <Form.Label>Subentry {subentry.index} Title</Form.Label>
                                     <Form.Control type="text" 
@@ -679,7 +679,7 @@ const CreateEntry = () => {
                 </Col>
             </Row>
             </Container>
-        </div>
+        </Container>
     );
 };
 

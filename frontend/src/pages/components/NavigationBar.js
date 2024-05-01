@@ -6,6 +6,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { baseURL } from "../../utils/constants";
 import { postFetch } from "../../utils/requests";
 
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 const NavigationBar = ({
     isLoggedIn,
@@ -15,6 +16,7 @@ const NavigationBar = ({
     const navigate = useNavigate();
 
     const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
     const setWindowSize = () => {
         setWindowWidth(window.innerWidth);
@@ -113,11 +115,20 @@ const NavigationBar = ({
                                 window.location.reload();
                             }} >[Logout]</a>
                         }
-                    </Navbar.Collapse> :
+                    </Navbar.Collapse> 
+                    :
+                    isLoggingIn?
+                    <Navbar.Collapse className="justify-content-end">
+                        <Nav>
+                            <AiOutlineLoading3Quarters className="loading2" />
+                        </Nav>
+                    </Navbar.Collapse>
+                    :
                     <Navbar.Collapse className="justify-content-end">
                         <Nav>
                             <GoogleLogin
                                 onSuccess={async (credentialResponse) => {
+                                    setIsLoggingIn(true);
                                     // console.log(credentialResponse);
                                     // console.log(jwtDecode(credentialResponse.credential));
                                     
@@ -133,6 +144,7 @@ const NavigationBar = ({
                                             localStorage.setItem("user", JSON.stringify(loggedInUser));
 
                                             setIsLoggedIn(true);
+                                            setIsLoggingIn(false);
                                         }
                                     });
                         

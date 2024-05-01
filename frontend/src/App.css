@@ -56,8 +56,15 @@
   height: 20vmin;
 }
 
+.loading2 {
+  height: 2vmin;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .loading {
+    animation: App-logo-spin infinite 2s linear;
+  }
+  .loading2 {
     animation: App-logo-spin infinite 2s linear;
   }
 }
