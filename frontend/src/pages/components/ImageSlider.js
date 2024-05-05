@@ -55,6 +55,7 @@ const ImageSlider = ({
             <div style={{display: "flex", gap: "12px"}}>
                 <div>
                 <button
+                    style={{width: "3em"}}
                 disabled={imgIdx == 0} 
                     onClick={()=>{
                     setImgIdx((prev)=>{
@@ -69,6 +70,7 @@ const ImageSlider = ({
                     //setHasPicked(false);
                 }}>Prev</button>
                 <button 
+                    style={{width: "3em"}}
                     disabled={arrImg? imgIdx >= arrImg.length-1: true}
                     onClick={()=>{
                     setImgIdx((prev)=>{

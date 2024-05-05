@@ -434,7 +434,7 @@ const CreateEntry = () => {
                                 </div>
                             </Col>
                             <Col>
-                            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1" style={{overflow: "auto"}}>
                             <Form.Label>Subentry {subentry.index} Content</Form.Label>
                             {
                                 subentry.type == "text" ?
@@ -526,7 +526,7 @@ const CreateEntry = () => {
                                 </div>
                                 :
                                 <>
-                                    <div id={"div-img-"+subentry.index} style={{overflow: "auto"}}>
+                                    <div id={"div-img-"+subentry.index}>
                                         <SignatureCanvas
                                             ref={ref => sigCanvas.current[subentry.index] = ref}
                                             canvasProps={{
@@ -566,7 +566,7 @@ const CreateEntry = () => {
                                         >Confirm</Button>
                                         
                                     </div>
-                                    <Container className="mt-2">
+                                    {/* <Container className="mt-2">
                                     <div>Security Measures: (changes will reset past input)</div>
                                     <div>
                                         <Form.Check
@@ -596,10 +596,46 @@ const CreateEntry = () => {
                                             }}
                                         />
                                     </div>
-                                    </Container>
+                                    </Container> */}
                                 </>
                             }
                             </Form.Group>
+                            {
+                                subentry.type == "canvas"?
+                                <Container className="mt-2">
+                                <div>Security Measures: (changes will reset past input)</div>
+                                <div>
+                                    <Form.Check
+                                        id={"checkbox-gradient-"+subentry.index}
+                                        type="switch"
+                                        label="Apply Gradient"
+                                        onChange={()=>{
+                                            document.getElementById("div-img-"+subentry.index).style.pointerEvents = "all";
+                                            sigCanvas.current[subentry.index].clear();
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].content = "";
+                                            setSubentries(newSubentries);
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <Form.Check
+                                        id={"checkbox-text-"+subentry.index}
+                                        type="switch"
+                                        label="Text Watermark"
+                                        onChange={()=>{
+                                            document.getElementById("div-img-"+subentry.index).style.pointerEvents = "all";
+                                            sigCanvas.current[subentry.index].clear();
+                                            let newSubentries = cloneDeep(subentries);
+                                            newSubentries[subentry.index].content = "";
+                                            setSubentries(newSubentries);
+                                        }}
+                                    />
+                                </div>
+                                </Container>
+                                :
+                                null
+                            }
                             </Col>
                             </Row>
                             <hr />

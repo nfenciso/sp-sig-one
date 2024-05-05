@@ -311,8 +311,8 @@ const PDFPage = () => {
                 isNull(isLoggedIn) ?
                 null :
                 <>
-                <Row className="mb-3 bg-white mx-auto p-3" >
-                <Col xs={3}>
+                <Row className="bg-white mx-auto px-3 pt-3 pb-0" >
+                <Col xs={10} lg={3}>
                 <div>
                 <input type="file" accept=".pdf" onChange={(e) => {
                     if (e.target.files[0]) {
@@ -321,14 +321,7 @@ const PDFPage = () => {
                 }} />
                 
                 </div>
-                <div>
-                <button 
-                    disabled={!hasPicked || !qrImage}
-                    onClick={()=>{
-                        downloadPdf();
-                    }}
-                >Download modified PDF</button>
-                </div>
+                
                 </Col>
                 <Col>
                 {
@@ -356,6 +349,18 @@ const PDFPage = () => {
                     <p><b>Fetching entries...</b></p>
                 }
                 </Col>
+                </Row>
+                <Row  className="mb-3 bg-white mx-auto px-3 pt-1 pb-3" >
+                    <Col>
+                    <div>
+                    <button 
+                        disabled={!hasPicked || !qrImage}
+                        onClick={()=>{
+                            downloadPdf();
+                        }}
+                    >Download modified PDF</button>
+                    </div>
+                    </Col>
                 </Row>
                 {
                     qrImage && canvasList ?
