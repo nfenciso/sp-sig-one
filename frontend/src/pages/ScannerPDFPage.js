@@ -5,12 +5,13 @@ import * as PDFJS from 'pdfjs-dist';
 //import * as PNG from 'pngjs';
 import jsQR from "jsqr";
 
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import NavigationBar from "./components/NavigationBar";
 
 import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, Form } from "react-bootstrap";
 import { clone, cloneDeep, isNull } from "lodash";
 
 import QRCode from "qrcode";
@@ -39,6 +40,9 @@ const ScannerPDFPage = () => {
     const drawImgConfig = useRef(null);
     const pdfBytesRef = useRef(null);
     const [hasPicked, setHasPicked] = useState(false);
+    const [rendering, setRendering] = useState(false);
+    const [doneRender, setDoneRender] = useState(false);
+    const [scannedResults, setScannedResults] = useState([]);
 
     useEffect(()=>{
         PDFJS.GlobalWorkerOptions.workerSrc = pdfjsWorker;
@@ -70,6 +74,7 @@ const ScannerPDFPage = () => {
             getImgDim();
         }
     }, [qrImage]);
+
 
     const reset = () => {
         setImgIdx(0);
@@ -118,6 +123,10 @@ const ScannerPDFPage = () => {
             PDFJS.getDocument(reader.result).promise.then((pdf) => {
                 var imgArr = [0*pdf.numPages];
                 var canvasArr = [0*pdf.numPages];
+                var numScannedPages = 0;
+                var progress = document.getElementById('scanProgress');
+                var newResults = []
+
                 for (let i = 1; i<=pdf.numPages; i++) {
                     pdf.getPage(i).then((page) => {
                         var viewport = page.getViewport({scale: 1});
@@ -136,7 +145,7 @@ const ScannerPDFPage = () => {
                         // Render PDF page into canvas context
                         //
                         page.render({canvasContext: context, viewport: viewport})
-                        .promise.then(() => {
+                        .promise.then(async () => {
                             // setImgUrl(canvas.toDataURL());
                             imgArr[i-1] = canvas.toDataURL();
                             canvasArr[i-1] = canvas;
@@ -148,10 +157,28 @@ const ScannerPDFPage = () => {
                             let ctx = canvas.getContext("2d");
                             let imageData = ctx.getImageData(0, 0, viewport.width, viewport.height); 
 
-                            const code = jsQR(Uint8ClampedArray.from(imageData.data), viewport.width, viewport.height);
+                            var code;
+                            try {
+                                code = jsQR(Uint8ClampedArray.from(imageData.data), viewport.width, viewport.height);
+                            } catch (error) {
+                                console.log(error);
+                            }
                             const qrCodeText = code?.data;
 
-                            console.log('QR Code Text: ', qrCodeText);
+                            //console.log('QR Code Text: ', qrCodeText);
+                            //console.log(i);
+                            
+
+                            // let span = document.createElement('p');
+                            // span.display = 'inline-block';
+                            // span.textContent = `${numScannedPages}/${pdf.numPages} pages scanned. (Page #${i})`;
+                            
+                            // progress.appendChild(span);
+
+                            //progress.innerText += `${numScannedPages}/${pdf.numPages} pages scanned. (Page #${i})\n`;
+                            // setPdfProgress((prev)=>{
+                            //     return [...prev, i];
+                            // });
 
                             if (qrCodeText) {
                                 let partResult = qrCodeText.split("/");
@@ -161,13 +188,37 @@ const ScannerPDFPage = () => {
                                 }
 
                                 if (checkForHexRegExp.test(partResult)) {
-                                    navigate(`/view-entry/${partResult}`);
+                                    //navigate(`/view-entry/${partResult}`);
+                                    // let span = document.createElement('p');
+                                    // span.textContent = `Valid QR Code Entry`;
+                                    
+                                    // progress.appendChild(span);
+                                    //progress.innerText += `→ Valid QR Code Entry\n`;
+                                    newResults.push({
+                                        page: i,
+                                        isValid: true,
+                                        content: partResult
+                                    });
                                 } else {
-                                    alert("No valid sigONE QR Code found!");
+                                    newResults.push({
+                                        page: i,
+                                        isValid: false,
+                                        content: qrCodeText
+                                    });
                                 }
+                            }
+
+                            numScannedPages+=1;
+                            console.log(i);
+
+                            if (numScannedPages == pdf.numPages) {
+                                setScannedResults(newResults);
+                                setDoneRender(true);
+                                setRendering(false);
                             }
                         });
                     });
+                    
                 }
                 
               }, (error) => {
@@ -176,6 +227,9 @@ const ScannerPDFPage = () => {
 
               
 		};
+        setDoneRender(false);
+        setRendering(true);
+        
 		reader.readAsArrayBuffer(selectedFile);
 
     }
@@ -183,26 +237,77 @@ const ScannerPDFPage = () => {
     return(
         <>
             <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <Container className="mb-5">
+            <Container>
+            <Card className="mb-5 p-4" style={{
+                // marginLeft: "5em",
+                // marginRight: "5em",
+                fontSize: "1.2em"
+            }}>
             {
-                isNull(isLoggedIn) ?
-                null :
+                // isNull(isLoggedIn) ?
+                // null :
                 <>
-                <Row className="mb-3 bg-white mx-auto p-3" >
-                <Col>
-                <div>
-                <input type="file" accept=".pdf" onChange={(e) => {
+                {/* <Row className="mb-3 bg-white mx-auto pt-3" >
+                <Col> */}
+                {/* <p>Upload PDF file containing the appropriate QR Code.</p>
+                <p><input type="file" accept=".pdf" onChange={(e) => {
                     if (e.target.files[0]) {
                         loadPdfToImage(e.target.files[0]);
                     }
                 }} />
+                </p> */}
+                <Form.Group controlId="formFile" className="mb-3">
+                    <Form.Label>Upload PDF file containing the appropriate QR Code.</Form.Label>
+                    <Form.Control type="file" accept=".pdf" onChange={(e)=>{
+                        if (e.target.files[0]) {
+                            loadPdfToImage(e.target.files[0]);
+                        }
+                    }} />
+                </Form.Group>
+                {
+                    rendering?
+                    <div style={{fontSize: "0.85em"}}>Processing PDF... For large files, page may freeze until done processing...</div>
+                    :
+                    null
+                }
+                
+                <div id="scanProgress" style={{maxHeight: "60vh", overflow: "auto", fontSize: "0.85em"}}>
+                {
+                    doneRender?
+                    scannedResults.length != 0?
+                    scannedResults?.map((item)=>{
+                        if (item.isValid) {
+                            return <div key={"result-"+item.page}>Page {item.page}: <a href={"/view-entry/"+item.content}>Valid QR Code Entry</a>
+                            </div>
+                        } else {
+                            return <div key={"result-"+item.page}>Page {item.page}: {item.content}</div>
+                        }
+                    })
+                    :
+                    <div>No QR Code found.</div>
+                    :
+                    null
+                }
                 </div>
-                <div>
+                {/* </Col>
+                </Row> */}
+                {/* {
+                    rendering?
+                    <Row><AiOutlineLoading3Quarters className="loading" color="white"  /></Row>
+                    :
+                    null
+                } */}
+
+                {/* <Row className="mb-3 bg-white mx-auto p-3" >
+                <Col>
+                <div id="scanProgress">
+                ---
                 </div>
                 </Col>
-                </Row>
+                </Row> */}
                 </>
             }
+            </Card>
             </Container>
         </>
     );

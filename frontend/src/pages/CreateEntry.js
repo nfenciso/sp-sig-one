@@ -526,17 +526,19 @@ const CreateEntry = () => {
                                 </div>
                                 :
                                 <>
-                                    <div id={"div-img-"+subentry.index}>
+                                    <div id={"div-img-"+subentry.index} style={{overflow: "auto"}}>
                                         <SignatureCanvas
                                             ref={ref => sigCanvas.current[subentry.index] = ref}
                                             canvasProps={{
                                                 className: "signatureCanvas",
+                                                
                                             }}
                                             clearOnResize={false}
                                         />
                                     </div>
                                     <div style={{display: "flex", gap: "5px"}}>
                                         <Button variant="outline-secondary" onClick={()=>{
+                                            document.getElementById("div-img-"+subentry.index).style.pointerEvents = "all";
                                             sigCanvas.current[subentry.index].clear();
 
                                             let newSubentries = cloneDeep(subentries);
@@ -544,6 +546,8 @@ const CreateEntry = () => {
                                             setSubentries(newSubentries);
                                         }}>Clear</Button>
                                         <Button variant={subentry.content == "" ? "danger" : "outline-secondary"} onClick={()=>{
+                                            document.getElementById("div-img-"+subentry.index).style.pointerEvents = "none";
+
                                             let sig = sigCanvas.current[subentry.index].getCanvas().toDataURL("image/png");
 
                                             let shouldAddGradient = document.getElementById("checkbox-gradient-"+subentry.index).checked;
@@ -570,6 +574,7 @@ const CreateEntry = () => {
                                             type="switch"
                                             label="Apply Gradient"
                                             onChange={()=>{
+                                                document.getElementById("div-img-"+subentry.index).style.pointerEvents = "all";
                                                 sigCanvas.current[subentry.index].clear();
                                                 let newSubentries = cloneDeep(subentries);
                                                 newSubentries[subentry.index].content = "";
@@ -583,6 +588,7 @@ const CreateEntry = () => {
                                             type="switch"
                                             label="Text Watermark"
                                             onChange={()=>{
+                                                document.getElementById("div-img-"+subentry.index).style.pointerEvents = "all";
                                                 sigCanvas.current[subentry.index].clear();
                                                 let newSubentries = cloneDeep(subentries);
                                                 newSubentries[subentry.index].content = "";

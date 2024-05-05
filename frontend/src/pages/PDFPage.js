@@ -8,7 +8,7 @@ import ImageSlider from "./components/ImageSlider";
 
 import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, Form } from "react-bootstrap";
 import { clone, cloneDeep, isNull } from "lodash";
 
 import QRCode from "qrcode";
@@ -162,7 +162,7 @@ const PDFPage = () => {
                     arrImgRef.current = cloneDeep(imgArr);
                     setCanvasList(canvasArr);
                     canvasListRef.current = cloneDeep(canvasArr);
-                    console.log(canvasListRef.current);
+                    //console.log(canvasListRef.current);
 
                     setImgIdx(0);
                     imgIdxRef.current = 0;
@@ -312,19 +312,31 @@ const PDFPage = () => {
                 null :
                 <>
                 <Row className="mb-3 bg-white mx-auto p-3" >
-                <Col>
+                <Col xs={3}>
                 <div>
                 <input type="file" accept=".pdf" onChange={(e) => {
                     if (e.target.files[0]) {
                         loadPdfToImage(e.target.files[0]);
                     }
                 }} />
+                
+                </div>
+                <div>
+                <button 
+                    disabled={!hasPicked || !qrImage}
+                    onClick={()=>{
+                        downloadPdf();
+                    }}
+                >Download modified PDF</button>
+                </div>
+                </Col>
+                <Col>
                 {
                     entries ?
                     entries.length == 0 ?
                     <p><b>Create an Entry first.</b></p>
                     :
-                    <select id="qrselect"
+                    <select style={{width: "10em"}} id="qrselect"
                         onChange={(e)=>{
                             QRCode.toDataURL(e.target.value, { errorCorrectionLevel: 'H' }, function (err, url) {
                                 setQrImage(url);
@@ -332,7 +344,7 @@ const PDFPage = () => {
                         }}
                         defaultValue={location.state?.id? location.state?.id : "0"}
                     >
-                        <option disabled value="0" style={{display:"none"}}> -- select an option -- </option>
+                        <option disabled value="0" style={{display:"none"}}> -select an option- </option>
                         {
                             entries.map((entry)=>{
                                 return(
@@ -341,17 +353,8 @@ const PDFPage = () => {
                             })
                         }
                     </select> :
-                    null
+                    <p><b>Fetching entries...</b></p>
                 }
-                </div>
-                <div>
-                <button 
-                    disabled={!hasPicked || !qrImage}
-                    onClick={()=>{
-                        downloadPdf();
-                    }}
-                >Download PDF</button>
-                </div>
                 </Col>
                 </Row>
                 {
@@ -383,7 +386,7 @@ const PDFPage = () => {
             {
                 displayButtons?
                 <div style={{position: "fixed", bottom: "20px", right: "20px", display: "flex", gap: "12px"}}>
-                    <div>
+                    <div  style={{display: "flex", gap: "2px"}}>
                         <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
                         disabled={imgIdx == 0} 
                             onClick={()=>{
@@ -413,7 +416,7 @@ const PDFPage = () => {
                             //setHasPicked(false);
                         }}>{">"}</button>
                     </div>
-                    <div>
+                    <div  style={{display: "flex", gap: "2px"}}>
                         <button style={{borderRadius: "40px", width: "40px", height: "40px"}}
                             disabled={!hasPicked}
                             onClick={()=>{

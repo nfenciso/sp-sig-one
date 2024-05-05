@@ -156,7 +156,7 @@ const ViewEntryPage = () => {
                             }
                             </Col>
                             <Col className="list-right-col-subentries p-3" 
-                                style={{overflow: "auto", wordBreak: "break-all", whiteSpace: "normal", maxHeight: "40vh",
+                                style={{overflow: "auto", wordBreak: "break-all", whiteSpace: "normal", maxHeight: "42vh",
                                         position: "relative"}}
                             >
                             {

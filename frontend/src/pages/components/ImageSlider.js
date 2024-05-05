@@ -50,6 +50,8 @@ const ImageSlider = ({
     //FFBA5F
     return(
         <Container className="py-3 mb-3">
+            
+            <div className="mb-2">Navigate through the PDF and select a spot to insert the QR Code.</div>
             <div style={{display: "flex", gap: "12px"}}>
                 <div>
                 <button
@@ -84,6 +86,7 @@ const ImageSlider = ({
 
                 <div>
                 <button
+                    style={{width: "2.5em"}}
                     disabled={!hasPicked}
                     onClick={()=>{
                     setImgDim((prev)=>{return prev-10});
@@ -93,6 +96,7 @@ const ImageSlider = ({
                     document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
                 }}>--</button>
                 <button 
+                    style={{width: "2.5em"}}
                     disabled={!hasPicked}
                     onClick={()=>{
                     setImgDim((prev)=>{return prev-2});
@@ -102,6 +106,7 @@ const ImageSlider = ({
                     document.getElementById("canvas").children[0].dispatchEvent(clickEvent);
                 }}>-</button>
                 <button 
+                    style={{width: "2.5em"}}
                     disabled={!hasPicked}
                     onClick={()=>{
                     setImgDim((prev)=>{return prev+2});
@@ -112,6 +117,7 @@ const ImageSlider = ({
 
                 }}>+</button>
                 <button
+                    style={{width: "2.5em"}}
                     disabled={!hasPicked}
                     onClick={()=>{
                     setImgDim((prev)=>{return prev+10});
