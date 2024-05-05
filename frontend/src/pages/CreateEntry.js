@@ -10,6 +10,9 @@ import Creatable, { useCreatable } from 'react-select/creatable';
 import Select from 'react-select';
 import { clone, cloneDeep, isNull, values } from "lodash";
 import SignatureCanvas from 'react-signature-canvas';
+import watermark from 'watermarkjs';
+import html2canvas from 'html2canvas';
+
 
 import { RxText } from "react-icons/rx";
 import { FaRegImages } from "react-icons/fa";
@@ -94,9 +97,106 @@ const CreateEntry = () => {
     }, []);
 
     useEffect(()=>{
-        console.log(genPermissionDetails);
-        console.log(subentries);    
+        //console.log(genPermissionDetails);
+        //console.log(subentries);    
     }, [subentries]);
+
+    // Reference: https://stackoverflow.com/questions/1484506/random-color-generator
+    const getRandomColor = () => {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+
+    const addTextWatermark = (width, height, result, index) => {
+        let fontSize = (width*72/(96*2.5));
+
+        watermark([result])
+        .image(watermark.text.center('SigOne', + fontSize+'px serif', '#000', 0.15))
+        .then(function (img) {
+            var x1 = function(coffee, metrics, context) {return 0;};
+            var y1 = function(coffee, metrics, context) {return 0+fontSize*0.8;};
+            watermark([img.src])
+            .image(watermark.text.atPos(x1,y1,'SigOne', + fontSize+'px serif', '#000', 0.1)) // upper left
+            .then(function (img2) {
+                
+                var x2 = function(coffee, metrics, context) {return width-(fontSize*3);};
+                var y2 = function(coffee, metrics, context) {return height-(fontSize*0.3);};
+                watermark([img2.src])
+                .image(watermark.text.atPos(x2,y2,'SigOne', + fontSize+'px serif', '#000', 0.2)) // lower right
+                .then(function (img3) {
+                    let newSubentries = cloneDeep(subentries);
+                    newSubentries[index].content = img3.src;
+                    setSubentries(newSubentries);
+                });
+            });
+        });
+    }
+
+    const applySecurityMeasure = (result, index, shouldAddGradient, shouldAddText) => {
+        var newImage = new Image();
+        newImage.onload = () => {
+            var newDiv;
+            document.getElementById("div-img-"+index).appendChild(newImage);
+            let width = parseFloat(getComputedStyle(newImage).width);
+            let height = parseFloat(getComputedStyle(newImage).height);
+            document.getElementById("div-img-"+index).removeChild(newImage);
+
+            if (shouldAddGradient) {
+                newDiv = document.createElement("div");
+                newDiv.style.height = height+"px";
+                newDiv.style.width = width+"px";
+                newDiv.height = height+"px";
+                newDiv.width = width+"px";
+                newDiv.style.background = "yellow";
+                newDiv.style.background = `linear-gradient(60deg, ${getRandomColor()}, ${getRandomColor()}, ${getRandomColor()}, ${getRandomColor()}, ${getRandomColor()})`;//blue, red, yellow, green, orange
+                newDiv.style.position = "absolute";
+                newDiv.style.left = "0";
+                newDiv.style.top = "0";
+                newDiv.style.zIndex = "-999";
+                
+                document.getElementById("div-img-"+index).appendChild(newDiv);
+            }
+
+            if (shouldAddGradient && !shouldAddText) {
+                html2canvas(newDiv).then(function(canvas) {
+                    document.getElementById("div-img-"+index).removeChild(newDiv);
+                    let gradientImg = canvas.toDataURL();
+
+                    watermark([result, gradientImg])
+                    .image(watermark.image.center(0.6))
+                    .then(function (img) {
+                        let newSubentries = cloneDeep(subentries);
+                        newSubentries[index].content = img.src;
+                        setSubentries(newSubentries);
+                    });
+                });
+            }
+            else if (!shouldAddGradient && shouldAddText) {
+                addTextWatermark(width, height, result, index);
+            }
+            else if (shouldAddGradient && shouldAddText) {
+                html2canvas(newDiv).then(function(canvas) {
+                    document.getElementById("div-img-"+index).removeChild(newDiv);
+                    let gradientImg = canvas.toDataURL();
+
+                    watermark([result, gradientImg])
+                    .image(watermark.image.center(0.6))
+                    .then(function (img) {
+                        addTextWatermark(width, height, img.src, index);
+                    });
+                });
+            }
+            
+
+            
+        }
+
+        newImage.src = result;
+    }
 
     return(
         <Container style={{backgroundColor: "#204183"}} fluid>
@@ -351,7 +451,7 @@ const CreateEntry = () => {
                                 />
                                 :
                                 subentry.type == "image" ?
-                                <div>
+                                <div id={"div-img-"+subentry.index}>
                                     <input 
                                         id={"img-upload-"+subentry.index}
                                         type="file" accept="image/*" 
@@ -369,22 +469,64 @@ const CreateEntry = () => {
                                             }
                                             else {
                                                 var reader = new FileReader();
+                                    
                                                 reader.onload = function(){
                                                     //var output = document.getElementById('output_image');
                                                     //output.src = reader.result;
-                                                    let newSubentries = cloneDeep(subentries);
-                                                    newSubentries[subentry.index].content = reader.result;
-                                                    setSubentries(newSubentries);
+                                                    // let newSubentries = cloneDeep(subentries);
+                                                    // newSubentries[subentry.index].content = reader.result;
+                                                    // setSubentries(newSubentries);
+
+                                                    let shouldAddGradient = document.getElementById("checkbox-gradient-"+subentry.index).checked;
+                                                    let shouldAddText = document.getElementById("checkbox-text-"+subentry.index).checked;
+
+                                                    if (shouldAddText || shouldAddGradient) {
+                                                        applySecurityMeasure(reader.result, subentry.index, shouldAddGradient, shouldAddText);
+                                                    } else {
+                                                        let newSubentries = cloneDeep(subentries);
+                                                        newSubentries[subentry.index].content = reader.result;
+                                                        setSubentries(newSubentries);
+                                                    }
                                                 }
                                                 reader.readAsDataURL(e.target.files[0]);
                                             }
                                             
                                         }
                                     }} />
+                                    <Container className="mt-2">
+                                    <div>Security Measures: (changes will reset past input)</div>
+                                    <div>
+                                        <Form.Check
+                                            id={"checkbox-gradient-"+subentry.index}
+                                            type="switch"
+                                            label="Apply Gradient"
+                                            onChange={()=>{
+                                                document.getElementById("img-upload-"+subentry.index).value = null;
+                                                let newSubentries = cloneDeep(subentries);
+                                                newSubentries[subentry.index].content = "";
+                                                setSubentries(newSubentries);
+                                            }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Form.Check
+                                            id={"checkbox-text-"+subentry.index}
+                                            type="switch"
+                                            label="Text Watermark"
+                                            onChange={()=>{
+                                                document.getElementById("img-upload-"+subentry.index).value = null;
+                                                let newSubentries = cloneDeep(subentries);
+                                                newSubentries[subentry.index].content = "";
+                                                setSubentries(newSubentries);
+                                            }}
+                                        />
+                                    </div>
+                                    </Container>
+                                    
                                 </div>
                                 :
                                 <>
-                                    <div>
+                                    <div id={"div-img-"+subentry.index}>
                                         <SignatureCanvas
                                             ref={ref => sigCanvas.current[subentry.index] = ref}
                                             canvasProps={{
@@ -401,17 +543,54 @@ const CreateEntry = () => {
                                             newSubentries[subentry.index].content = "";
                                             setSubentries(newSubentries);
                                         }}>Clear</Button>
-                                        <Button variant="outline-secondary" onClick={()=>{
+                                        <Button variant={subentry.content == "" ? "danger" : "outline-secondary"} onClick={()=>{
                                             let sig = sigCanvas.current[subentry.index].getCanvas().toDataURL("image/png");
 
-                                            let newSubentries = cloneDeep(subentries);
-                                            newSubentries[subentry.index].type = "canvas";
-                                            newSubentries[subentry.index].content = sig;
-                                            setSubentries(newSubentries);
+                                            let shouldAddGradient = document.getElementById("checkbox-gradient-"+subentry.index).checked;
+                                            let shouldAddText = document.getElementById("checkbox-text-"+subentry.index).checked;
+
+                                            if (shouldAddGradient || shouldAddText) {
+                                                applySecurityMeasure(sig, subentry.index, shouldAddGradient, shouldAddText);
+                                            } else {
+                                                let newSubentries = cloneDeep(subentries);
+                                                newSubentries[subentry.index].content = sig;
+                                                setSubentries(newSubentries);
+                                            }
+
                                         }}
                                             disabled={subentry.content != ""}
                                         >Confirm</Button>
+                                        
                                     </div>
+                                    <Container className="mt-2">
+                                    <div>Security Measures: (changes will reset past input)</div>
+                                    <div>
+                                        <Form.Check
+                                            id={"checkbox-gradient-"+subentry.index}
+                                            type="switch"
+                                            label="Apply Gradient"
+                                            onChange={()=>{
+                                                sigCanvas.current[subentry.index].clear();
+                                                let newSubentries = cloneDeep(subentries);
+                                                newSubentries[subentry.index].content = "";
+                                                setSubentries(newSubentries);
+                                            }}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Form.Check
+                                            id={"checkbox-text-"+subentry.index}
+                                            type="switch"
+                                            label="Text Watermark"
+                                            onChange={()=>{
+                                                sigCanvas.current[subentry.index].clear();
+                                                let newSubentries = cloneDeep(subentries);
+                                                newSubentries[subentry.index].content = "";
+                                                setSubentries(newSubentries);
+                                            }}
+                                        />
+                                    </div>
+                                    </Container>
                                 </>
                             }
                             </Form.Group>
