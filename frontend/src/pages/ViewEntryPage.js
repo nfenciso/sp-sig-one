@@ -164,7 +164,7 @@ const ViewEntryPage = () => {
                                 subentry.content
                                 :
                                 <div>
-                                <img src={subentry.content} />
+                                <img className="image-to-view" src={subentry.content} />
                                 {/* <div
                                 style={{
                                     position: "absolute", 

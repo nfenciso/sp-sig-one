@@ -53,6 +53,10 @@ code {
   .list-left-col-subentries {
     border-bottom: 1px solid #204183
   }
+  .image-to-view {
+    width: 350px;
+    object-fit: contain;
+  }
 }
 
 /* 
