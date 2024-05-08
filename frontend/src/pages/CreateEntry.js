@@ -167,7 +167,7 @@ const CreateEntry = () => {
                     let gradientImg = canvas.toDataURL();
 
                     watermark([result, gradientImg])
-                    .image(watermark.image.center(0.6))
+                    .image(watermark.image.center(0.4))
                     .then(function (img) {
                         let newSubentries = cloneDeep(subentries);
                         newSubentries[index].content = img.src;
@@ -184,7 +184,7 @@ const CreateEntry = () => {
                     let gradientImg = canvas.toDataURL();
 
                     watermark([result, gradientImg])
-                    .image(watermark.image.center(0.6))
+                    .image(watermark.image.center(0.4))
                     .then(function (img) {
                         addTextWatermark(width, height, img.src, index);
                     });
