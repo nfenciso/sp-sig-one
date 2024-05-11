@@ -60,6 +60,7 @@ const ViewEntryPage = () => {
                 console.log(res.results);
                 fetchAppropriateSubentries(res.results.generalPermission);
             } else {
+                document.body.style.overflowY = "auto";
                 setEntryDetails(403);
             }
         });
@@ -76,6 +77,7 @@ const ViewEntryPage = () => {
             fetchAppropriateDetails();
             
         } else {
+            console.log("not logged in");
             email.current = "public";
             fetchAppropriateDetails();
         }

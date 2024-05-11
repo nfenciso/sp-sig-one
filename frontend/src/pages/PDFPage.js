@@ -43,7 +43,11 @@ const PDFPage = () => {
         await postFetch(`${baseURL}/get-personal-entries`, {
             email: JSON.parse(localStorage.getItem("user")).email
         }).then((res)=>{
-            setEntries(res.results);
+            if (res?.results) {
+                setEntries(res.results);
+            } else {
+                setEntries([]);
+            }
         });
     };
 

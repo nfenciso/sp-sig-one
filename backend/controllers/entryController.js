@@ -196,11 +196,11 @@ const getAppropriateEntryDetails = async (req, res) => {
 
     let hasAccess = false;
     let isOwner = false;
-    if (results.userEmail == email) {
+    if (results?.userEmail == email) {
         hasAccess = true;
         isOwner = true;
     }
-    if (!hasAccess && results.generalPermission[0] != PRIVATE_OPTION) {
+    if (results && !hasAccess && results.generalPermission[0] != PRIVATE_OPTION) {
         if (results.generalPermission[0] == PUBLIC_OPTION) {
             hasAccess = true;
         } else {
@@ -257,6 +257,7 @@ const getAppropriateSubentries = async (req, res) => {
 
     subentries?.map((subentry)=>{
         let hasAccess = false;
+        console.log(">>");
         console.log(subentry.specificPermission);
 
         // UNCOMMENT
@@ -279,12 +280,39 @@ const getAppropriateSubentries = async (req, res) => {
             }
             else if ([S_NEWTYPE_ORG_OPTION, S_NEWTYPE_PERSONS_OPTION].includes(specificPermission[0])) {
                 actualPermission = generalPermission.concat(specificPermission);
+                //actualPermission = specificPermission.concat(generalPermission);
             }
             else if ([S_MORE_SPECIFIC_ORG_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(specificPermission[0])) {
                 actualPermission = specificPermission;
             }
 
-            console.log(">>");
+            if (
+                [ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION,
+                    PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION
+                ].includes(actualPermission[0])
+            ) {
+                let newArr = [];
+                actualPermission[1].map((obj)=>{
+                    newArr.push(obj.value);
+                });
+
+                actualPermission[1] = newArr;
+            }
+
+            if (
+                [ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION,
+                    PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION
+                ].includes(actualPermission[2])
+            ) {
+                let newArr = [];
+                actualPermission[3].map((obj)=>{
+                    newArr.push(obj.value);
+                });
+
+                actualPermission[3] = newArr;
+            }
+
+            console.log("--");
             console.log(actualPermission);
             
             if (actualPermission[0] == PUBLIC_OPTION) {
@@ -299,14 +327,16 @@ const getAppropriateSubentries = async (req, res) => {
                 hasAccess = true;
             }
 
+            console.log("temp:", hasAccess);
+
             if (actualPermission.length > 2) {
-                if ([ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION].includes(actualPermission[0])) {
-                    if (hasAccess && !actualPermission[1].includes(email.split("@")[1])) {
+                if ([ORG_OPTION, S_NEWTYPE_ORG_OPTION, S_MORE_SPECIFIC_ORG_OPTION].includes(actualPermission[2])) {
+                    if (hasAccess && !actualPermission[3].includes(email.split("@")[1])) {
                         hasAccess = false;
                     }
                 }
-                else if ([PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(actualPermission[0])) {
-                    if (hasAccess && !actualPermission[1].includes(email)) {
+                else if ([PERSONS_OPTION, S_NEWTYPE_PERSONS_OPTION, S_MORE_SPECIFIC_PERSONS_OPTION].includes(actualPermission[2])) {
+                    if (hasAccess && !actualPermission[3].includes(email)) {
                         hasAccess = false;
                     }
                 }
@@ -336,11 +366,15 @@ const getAppropriateSubentries = async (req, res) => {
             //     }
             // }
         // }
+        console.log(hasAccess);
+        console.log("<<");
 
         if (hasAccess) {
             results.push(subentry);
         }
     });
+
+    //console.log("+++++++++++++", results);
 
     
 

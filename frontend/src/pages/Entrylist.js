@@ -30,18 +30,23 @@ const Entrylist = () => {
             email: JSON.parse(localStorage.getItem("user")).email
         }).then((res)=>{
             console.log(res);
-            setEntries(res.results);
-            //console.log(res?.results);
+            if (res) {
+                setEntries(res.results);
+                //console.log(res?.results);
 
-            let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
+                let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
 
-            res.results.map((entry, index)=>{
-                QRCode.toDataURL(`${baseURL}/view-entry/${entry._id}`, { errorCorrectionLevel: 'H' }, function (err, url) {
-                    qrList[index] = url;
+                res.results.map((entry, index)=>{
+                    QRCode.toDataURL(`${baseURL}/view-entry/${entry._id}`, { errorCorrectionLevel: 'H' }, function (err, url) {
+                        qrList[index] = url;
+                    });
                 });
-            });
 
-            setQrCodes(qrList);
+                setQrCodes(qrList);
+            } else {
+                setEntries([]);
+                setQrCodes([]);
+            }
         });
     };
     
