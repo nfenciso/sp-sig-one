@@ -87,7 +87,7 @@ const NavigationBar = ({
                             windowWidth >= 768 ?
                             <Nav>
                                 <NavDropdown
-                                    title={JSON.parse(localStorage.getItem("user")).name} 
+                                    title={JSON.parse(localStorage.getItem("user")).name + ` (${JSON.parse(localStorage.getItem("user")).email})`} 
                                     id="topbar-dropdown"
                                     align={"end"}
                                 >
