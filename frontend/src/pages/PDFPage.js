@@ -2,6 +2,7 @@ import React, { useEffect, useReducer, useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { degrees, PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import * as PDFJS from 'pdfjs-dist';
+import html2canvas from 'html2canvas';
 
 import NavigationBar from "./components/NavigationBar";
 import ImageSlider from "./components/ImageSlider";
@@ -9,7 +10,7 @@ import ImageSlider from "./components/ImageSlider";
 import { baseURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
 import { Container, Row, Col, Card, Form } from "react-bootstrap";
-import { clone, cloneDeep, isNull } from "lodash";
+import { clone, cloneDeep, isNull, set } from "lodash";
 
 import QRCode from "qrcode";
 
@@ -310,7 +311,7 @@ const PDFPage = () => {
     return(
         <>
             <NavigationBar isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
-            <Container className="mb-5">
+            <Container className="mb-5" id="pdfcontainer">
             {
                 isNull(isLoggedIn) ?
                 null :
@@ -336,7 +337,22 @@ const PDFPage = () => {
                     <select style={{width: "10em"}} id="qrselect"
                         onChange={(e)=>{
                             QRCode.toDataURL(e.target.value, { errorCorrectionLevel: 'H' }, function (err, url) {
-                                setQrImage(url);
+                                //setQrImage(url);
+                                var img = new Image();
+                                img.onload = function() {      
+                                    img.style.position = "absolute";
+                                    img.style.top = "0";
+                                    img.style.left = "0";
+                                    img.style.zIndex = "-999";
+                                    document.getElementById("pdfcontainer").appendChild(img);
+                                    img.style.border = "1px outset rgba(0,0,0,0.8)";
+                                    
+                                    html2canvas(img).then((canvas)=>{
+                                        setQrImage(canvas.toDataURL());
+                                    });
+                                };
+                                
+                                img.src = url;
                             });
                         }}
                         defaultValue={location.state?.id? location.state?.id : "0"}
