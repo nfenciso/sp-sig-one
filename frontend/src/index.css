@@ -47,6 +47,10 @@ code {
   .list-left-col-subentries {
     border-right: 8px solid #204183
   }
+  .image-to-view {
+    width: 41vh;
+    object-fit: contain;
+  }
 }
 
 @media only screen and (max-width: 576px) {
