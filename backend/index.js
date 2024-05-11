@@ -16,7 +16,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({
-    origin: ["http://localhost:3000"],//http://localhost:5000
+    origin: ["https://sp-sig-one.vercel.app"],//http://localhost:5000
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
 }));
