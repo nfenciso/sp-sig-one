@@ -11,7 +11,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 import NavigationBar from "./components/NavigationBar";
 
-import { baseURL } from "../utils/constants";
+import { baseURL, selfURL } from "../utils/constants";
 import { postFetch } from "../utils/requests";
 import { isNull } from "lodash";
 
@@ -37,7 +37,7 @@ const Entrylist = () => {
                 let qrList = Array.from({ length: res.results.length }, (_, k) => 0);
 
                 res.results.map((entry, index)=>{
-                    QRCode.toDataURL(`${baseURL}/view-entry/${entry._id}`, { errorCorrectionLevel: 'H' }, function (err, url) {
+                    QRCode.toDataURL(`${selfURL}/view-entry/${entry._id}`, { errorCorrectionLevel: 'H' }, function (err, url) {
                         qrList[index] = url;
                     });
                 });
