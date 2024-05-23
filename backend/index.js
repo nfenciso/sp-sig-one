@@ -13,10 +13,11 @@ import authRoutes from "./routes/authRoutes.js";
 import entryRoutes from "./routes/entryRoutes.js";
 
 const app = express();
-const port = process.env.PORT || 5000;
+var port = process.env.PORT || 5000;
+var allowedOrigin = process.env.FRONTEND_URL || "http://localhost:3000";
 
 app.use(cors({
-    origin: ["https://sp-sig-one.vercel.app"],//http://localhost:5000
+    origin: [allowedOrigin],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true
 }));
