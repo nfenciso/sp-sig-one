@@ -72,7 +72,7 @@ const CreateEntry = () => {
             genPermissionDetails: genPermissionDetails,
             subentries
         }).then((res)=>{
-            console.log(res);
+            //console.log(res);
 
             if (res) {
                 alert("Entry created!");

@@ -44,7 +44,7 @@ const ViewEntryPage = () => {
             setLoadedSubentries(true);
             document.body.style.overflowY = "auto";
             setSubentries(res.results);
-            console.log(res.results);
+            //console.log(res.results);
         });
     };
 
@@ -54,10 +54,10 @@ const ViewEntryPage = () => {
             email: email.current
         }).then((res)=>{
             if (res?.access) {
-                console.log(res);
+                //console.log(res);
                 setIsOwner(res.isOwner);
                 setEntryDetails(res.results);
-                console.log(res.results);
+                //console.log(res.results);
                 fetchAppropriateSubentries(res.results.generalPermission);
             } else {
                 document.body.style.overflowY = "auto";

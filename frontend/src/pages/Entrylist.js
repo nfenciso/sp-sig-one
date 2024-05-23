@@ -29,7 +29,7 @@ const Entrylist = () => {
         await postFetch(`${baseURL}/get-personal-entries`, {
             email: JSON.parse(localStorage.getItem("user")).email
         }).then((res)=>{
-            console.log(res);
+            //console.log(res);
             if (res) {
                 setEntries(res.results);
                 //console.log(res?.results);

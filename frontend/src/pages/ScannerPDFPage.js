@@ -209,7 +209,7 @@ const ScannerPDFPage = () => {
                             }
 
                             numScannedPages+=1;
-                            console.log(i);
+                            //console.log(i);
 
                             if (numScannedPages == pdf.numPages) {
                                 setScannedResults(newResults);

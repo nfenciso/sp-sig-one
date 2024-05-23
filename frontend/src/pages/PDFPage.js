@@ -203,7 +203,7 @@ const PDFPage = () => {
 
         // Get the width and height of the first page
         const { width, height } = pageToAddQr.getSize();
-        console.log(width, height);
+        //console.log(width, height);
 
         pageToAddQr.drawImage(pngImage, {
             x: drawImgConfig.current.x, //firstPage.getWidth() / 2 - pngDims.width / 2 + 75,
@@ -267,7 +267,7 @@ const PDFPage = () => {
         posX = posX - imgPos[0];
         posY = posY - imgPos[1];
         
-        console.log(posX, posY);
+        //console.log(posX, posY);
         // console.log("===");
 
         //console.log(prevPos.current);
