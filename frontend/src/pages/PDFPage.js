@@ -81,8 +81,8 @@ const PDFPage = () => {
                 const img = new Image();
                 img.src = qrImage;
                 await img.decode();
-                setImgDim(img.width);
-                imgDimRef.current = img.width;
+                setImgDim(img.width * 0.5);
+                imgDimRef.current = img.width * 0.5;
             };
 
             getImgDim();
